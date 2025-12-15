@@ -5,6 +5,42 @@ class SplashPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF1976D2), Color(0xFF0D47A1)],
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Spacer(),
+            const Icon(Icons.warehouse_rounded, size: 100, color: Colors.white),
+            const SizedBox(height: 24),
+            const Text(
+              'GudangHadir',
+              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1.2),
+            ),
+            const SizedBox(height: 8),
+            const Text('Sistem Gudang & Absensi Digital', style: TextStyle(fontSize: 16, color: Colors.white70)),
+            const SizedBox(height: 48),
+            const CircularProgressIndicator(color: Colors.white),
+            const Spacer(),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 24.0),
+              child: Text(
+                '© 2025 Himpunan Mahasiswa Prodi\nTeknik Informatika (HMP-TI)',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white54, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

@@ -52,90 +52,166 @@ class EmployeeHomeTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final attAsync = ref.watch(attendanceControllerProvider);
 
-    return Center(
-      // Center content
-      child: attAsync.when(
-        loading: () => const CircularProgressIndicator(),
-        error: (e, st) => Text('Error: $e'),
-        data: (attendance) {
-          final todayStr = DateFormat('EEEE, d MMM yyyy', 'id_ID').format(DateTime.now());
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: attAsync.when(
+          loading: () => const Center(heightFactor: 10, child: CircularProgressIndicator()),
+          error: (e, st) => Text('Error: $e'),
+          data: (attendance) {
+            final todayStr = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(DateTime.now());
+            final bool isCheckedIn = attendance?.checkInTime != null;
+            final bool isCheckedOut = attendance?.checkOutTime != null;
 
-          final bool isCheckedIn = attendance?.checkInTime != null;
-          final bool isCheckedOut = attendance?.checkOutTime != null;
+            String statusTitle = 'Selamat Pagi!';
+            String statusSubtitle = 'Jangan lupa absen hari ini.';
+            Color statusColor = const Color(0xFF0D47A1); // Deep Blue
 
-          String statusText = 'Belum Absen Hari Ini';
-          if (isCheckedIn && !isCheckedOut) statusText = 'Sudah Masuk (Belum Pulang)';
-          if (isCheckedOut) statusText = 'Sudah Selesai (Pulang)';
+            if (isCheckedIn && !isCheckedOut) {
+              statusTitle = 'Selamat Bekerja';
+              statusSubtitle = 'Anda sudah absen masuk.';
+              statusColor = const Color(0xFF00695C); // Teal
+            } else if (isCheckedOut) {
+              statusTitle = 'Terima Kasih';
+              statusSubtitle = 'Anda sudah selesai bekerja hari ini.';
+              statusColor = Colors.orange.shade800;
+            }
 
-          return Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(todayStr, style: const TextStyle(fontSize: 18, color: Colors.grey)),
-                const SizedBox(height: 16),
-                Text(
-                  statusText,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: [statusColor, statusColor.withOpacity(0.8)]),
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(color: statusColor.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 5)),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(todayStr, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                      const SizedBox(height: 8),
+                      Text(
+                        statusTitle,
+                        style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(statusSubtitle, style: const TextStyle(color: Colors.white, fontSize: 16)),
+                      const SizedBox(height: 16),
+                      if (isCheckedIn)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(20)),
+                          child: Text(
+                            'Masuk: ${DateFormat('HH:mm').format(attendance!.checkInTime!)}',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 40),
-
+                const SizedBox(height: 32),
+                const Text(
+                  'Menu Absensi',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0D47A1)),
+                ),
+                const SizedBox(height: 16),
                 if (!isCheckedIn) ...[
-                  _buildActionButton(
-                    icon: Icons.qr_code,
-                    label: 'Absen Masuk (QR)',
+                  _buildActionCard(
+                    context,
+                    title: 'Absen Masuk (SCAN QR)',
+                    subtitle: 'Scan QR Code di lokasi gudang',
+                    icon: Icons.qr_code_scanner,
                     color: Colors.blue,
-                    onPressed: () => _handleScan(context, ref, true),
+                    onTap: () => _handleScan(context, ref, true),
                   ),
                   const SizedBox(height: 16),
-                  _buildActionButton(
+                  _buildActionCard(
+                    context,
+                    title: 'Absen Masuk (GPS)',
+                    subtitle: 'Gunakan lokasi saat ini',
                     icon: Icons.gps_fixed,
-                    label: 'Absen Masuk (GPS)',
                     color: Colors.blueAccent,
-                    onPressed: () => _handleGPS(context, ref, true),
+                    onTap: () => _handleGPS(context, ref, true),
                   ),
                 ] else if (!isCheckedOut) ...[
-                  _buildActionButton(
+                  _buildActionCard(
+                    context,
+                    title: 'Absen Pulang (SCAN QR)',
+                    subtitle: 'Scan untuk mengakhiri hari',
                     icon: Icons.qr_code,
-                    label: 'Absen Pulang (QR)',
                     color: Colors.orange,
-                    onPressed: () => _handleScan(context, ref, false),
+                    onTap: () => _handleScan(context, ref, false),
                   ),
                   const SizedBox(height: 16),
-                  _buildActionButton(
+                  _buildActionCard(
+                    context,
+                    title: 'Absen Pulang (GPS)',
+                    subtitle: 'Checkout dengan lokasi',
                     icon: Icons.gps_fixed,
-                    label: 'Absen Pulang (GPS)',
                     color: Colors.orangeAccent,
-                    onPressed: () => _handleGPS(context, ref, false),
+                    onTap: () => _handleGPS(context, ref, false),
                   ),
                 ] else ...[
-                  const Icon(Icons.check_circle, size: 80, color: Colors.green),
-                  const SizedBox(height: 16),
-                  const Text('Jaga kesehatan! Sampai jumpa besok.'),
+                  Center(
+                    child: Column(
+                      children: [
+                        const Icon(Icons.check_circle_outline, size: 80, color: Colors.green),
+                        const SizedBox(height: 16),
+                        Text('Sampai jumpa besok!', style: TextStyle(color: Colors.grey.shade600)),
+                      ],
+                    ),
+                  ),
                 ],
               ],
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildActionButton({
+  Widget _buildActionCard(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
     required IconData icon,
-    required String label,
     required Color color,
-    required VoidCallback onPressed,
+    required VoidCallback onTap,
   }) {
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton.icon(
-        style: ElevatedButton.styleFrom(backgroundColor: color, foregroundColor: Colors.white),
-        icon: Icon(icon),
-        label: Text(label, style: const TextStyle(fontSize: 18)),
-        onPressed: onPressed,
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+                child: Icon(icon, color: color, size: 28),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+            ],
+          ),
+        ),
       ),
     );
   }

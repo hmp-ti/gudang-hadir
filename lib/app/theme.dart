@@ -6,21 +6,37 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: Colors.blue,
-        primary: const Color(0xFF1565C0), // Blue 800
-        secondary: const Color(0xFF00ACC1), // Cyan 600
+        seedColor: const Color(0xFF0D47A1), // Deep Blue
+        primary: const Color(0xFF0D47A1),
+        secondary: const Color(0xFF00695C), // Teal
+        surface: Colors.white,
+        background: const Color(0xFFF5F5F5),
       ),
-      fontFamily: GoogleFonts.inter().fontFamily,
-      appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
+      fontFamily: GoogleFonts.poppins().fontFamily,
+      appBarTheme: const AppBarTheme(
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Color(0xFF0D47A1),
+        foregroundColor: Colors.white,
+      ),
+      // CardTheme removed to avoid type issues for now
       inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
         filled: true,
         fillColor: Colors.grey.shade50,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: const Color(0xFF0D47A1),
+          foregroundColor: Colors.white,
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
     );
