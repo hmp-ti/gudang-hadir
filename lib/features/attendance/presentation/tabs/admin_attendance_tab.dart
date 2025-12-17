@@ -139,13 +139,14 @@ class _AdminAttendanceTabState extends ConsumerState<AdminAttendanceTab> {
                         child: ListTile(
                           leading: CircleAvatar(
                             backgroundColor: Colors.blue.shade100,
-                            child: const Icon(Icons.person, color: Colors.blue),
+                            backgroundImage: item.userPhotoUrl != null ? NetworkImage(item.userPhotoUrl!) : null,
+                            child: item.userPhotoUrl == null ? const Icon(Icons.person, color: Colors.blue) : null,
                           ),
                           title: Text(item.userName ?? 'User ???', style: const TextStyle(fontWeight: FontWeight.bold)),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('${DateFormat('d MMM yyyy').format(DateTime.parse(item.date))}'),
+                              Text(DateFormat('d MMM yyyy').format(DateTime.parse(item.date))),
                               Text(
                                 'Masuk: ${item.checkInTime != null ? DateFormat('HH:mm').format(item.checkInTime!) : '-'}  |  Plg: ${item.checkOutTime != null ? DateFormat('HH:mm').format(item.checkOutTime!) : '-'}',
                                 style: const TextStyle(color: Colors.black87),

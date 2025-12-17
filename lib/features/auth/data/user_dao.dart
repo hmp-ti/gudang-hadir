@@ -95,6 +95,28 @@ class UserDao {
     );
   }
 
+  Future<void> updateProfilePhoto(String userId, List<int> imageBytes, String filename) async {
+    // 1. Upload File
+    final file = await _appwrite.storage.createFile(
+      bucketId: AppwriteConfig.imagesBucketId,
+      fileId: ID.unique(),
+      file: InputFile.fromBytes(bytes: imageBytes, filename: filename),
+    );
+
+    // 2. Construct View URL
+    final uri = Uri.parse(AppwriteConfig.endpoint);
+    final photoUrl =
+        '${uri.scheme}://${uri.host}/v1/storage/buckets/${AppwriteConfig.imagesBucketId}/files/${file.$id}/view?project=${AppwriteConfig.projectId}';
+
+    // 3. Update User Document
+    await _appwrite.tables.updateRow(
+      databaseId: AppwriteConfig.databaseId,
+      tableId: AppwriteConfig.usersCollection,
+      rowId: userId,
+      data: {'photoUrl': photoUrl},
+    );
+  }
+
   User _mapRowToUser(models.Row row) {
     // row is models.Row
     final data = row.data;

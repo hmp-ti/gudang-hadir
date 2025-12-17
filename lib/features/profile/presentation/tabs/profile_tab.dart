@@ -14,7 +14,14 @@ class ProfileTab extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.account_circle, size: 100, color: Colors.grey),
+          if (user?.photoUrl != null)
+            CircleAvatar(radius: 60, backgroundImage: NetworkImage(user!.photoUrl!))
+          else
+            const CircleAvatar(
+              radius: 60,
+              backgroundColor: Colors.grey,
+              child: Icon(Icons.account_circle, size: 80, color: Colors.white),
+            ),
           const SizedBox(height: 16),
           Text(user?.name ?? 'Nama Pengguna', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           Text(user?.email ?? '@email', style: const TextStyle(fontSize: 16, color: Colors.grey)),

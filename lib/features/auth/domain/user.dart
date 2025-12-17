@@ -4,6 +4,7 @@ class User {
   final String email;
   final String role; // 'admin' or 'karyawan'
   final bool isActive;
+  final String? photoUrl;
   final DateTime createdAt;
 
   User({
@@ -12,6 +13,7 @@ class User {
     required this.email,
     required this.role,
     required this.isActive,
+    this.photoUrl,
     required this.createdAt,
   });
 
@@ -22,6 +24,7 @@ class User {
       email: json['email'],
       role: json['role'] ?? 'karyawan',
       isActive: json['is_active'] == true || json['is_active'] == 1,
+      photoUrl: json['photoUrl'] ?? json['photo_url'],
       createdAt: DateTime.tryParse(json['\$createdAt'] ?? json['created_at'] ?? '') ?? DateTime.now(),
     );
   }
@@ -33,6 +36,7 @@ class User {
       'email': email,
       'role': role,
       'is_active': isActive,
+      'photoUrl': photoUrl,
       'created_at': createdAt.toIso8601String(),
     };
   }

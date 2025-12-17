@@ -12,6 +12,7 @@ class AppwriteConfig {
   static const String leavesCollection = 'leaves';
   static const String generatedReportsCollection = 'generated_reports';
   static const String storageBucketId = 'general_storage';
+  static const String imagesBucketId = 'general_storage';
 }
 
 class AppRoles {

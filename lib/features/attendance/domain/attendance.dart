@@ -16,6 +16,7 @@ class Attendance {
 
   // Optional: Join
   final String? userName;
+  final String? userPhotoUrl;
 
   Attendance({
     required this.id,
@@ -33,6 +34,7 @@ class Attendance {
     this.overtimeHours,
     required this.createdAt,
     this.userName,
+    this.userPhotoUrl,
   });
 
   factory Attendance.fromJson(Map<String, dynamic> json) {
@@ -62,6 +64,7 @@ class Attendance {
       overtimeHours: getVal<int>('overtimeHours', 'overtime_hours'),
       createdAt: DateTime.tryParse(getVal<String>('createdAt', 'created_at') ?? '') ?? DateTime.now(),
       userName: getVal<String>('userName', 'user_name'),
+      userPhotoUrl: getVal<String>('userPhotoUrl', 'user_photo_url'),
     );
   }
 

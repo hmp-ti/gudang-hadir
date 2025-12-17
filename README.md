@@ -32,8 +32,19 @@ Created with ❤️ by **Himpunan Mahasiswa Prodi Teknik Informatika (HMP-TI)**
 *   **Geo-Tagging (GPS)**: Validasi lokasi karyawan untuk memastikan kehadiran di tempat kerja.
 *   **Riwayat**: Karyawan dapat melihat log kehadiran mereka sendiri.
 
-#### 👥 Manajemen Pengguna
-*   **Multi-Role**: Dukungan untuk akun **Admin** dan **Karyawan**.
+#### � Laporan & Analisis (Baru)
+*   **5 Laporan Utama**: Valuasi Stok, Reorder Plan, Item Turnover, Kinerja Karyawan, Histori Absensi.
+*   **Export Fleksibel**: Unduh laporan dalam format **PDF** atau **Excel**.
+*   **Cloud History**: Riwayat laporan tersimpan otomatis di cloud dan bisa diunduh kapan saja tanpa generate ulang.
+*   **Filter Canggih**: Filter berdasarkan tanggal (Harian, Bulanan, Custom) untuk analisis presisi.
+
+#### 📝 Cuti & Perizinan
+*   **Pengajuan Mudah**: Karyawan mengajukan cuti/ sakit/ izin langsung dari aplikasi.
+*   **Approval System**: Admin/Owner menyetujui atau menolak pengajuan dengan validasi.
+*   **Tanda Tangan Digital**: Pengesahan dokumen PDF secara digital oleh Owner.
+
+#### �👥 Manajemen Pengguna
+*   **Multi-Role**: Dukungan untuk akun **Admin**, **Owner**, dan **Karyawan**.
 *   **Keamanan**: Sistem login yang aman dengan validasi sesi.
 
 ---
@@ -45,6 +56,7 @@ Aplikasi ini dibangun menggunakan *stack* teknologi modern:
 *   **Language**: Dart 3.x
 *   **State Management**: Flutter Riverpod
 *   **Backend & Database**: Appwrite Cloud (Database, Auth, Storage)
+*   **Reporting**: PDF & Excel Generators, Fl_Chart
 *   **Navigation**: GoRouter
 *   **Features**: Mobile Scanner (QR), Geolocator (GPS)
 
@@ -52,9 +64,9 @@ Aplikasi ini dibangun menggunakan *stack* teknologi modern:
 
 ## 📸 Screenshots
 
-| Login Screen | Dashboard Admin | Scan QR |
-|:---:|:---:|:---:|
-| ![Login](https://via.placeholder.com/200x400?text=Login) | ![Dashboard](https://via.placeholder.com/200x400?text=Dashboard) | ![Scan](https://via.placeholder.com/200x400?text=Scan) |
+| Login Screen | Dashboard Admin | Scan QR | Reporting |
+|:---:|:---:|:---:|:---:|
+| ![Login](https://via.placeholder.com/200x400?text=Login) | ![Dashboard](https://via.placeholder.com/200x400?text=Dashboard) | ![Scan](https://via.placeholder.com/200x400?text=Scan) | ![Reporting](https://via.placeholder.com/200x400?text=Reporting) |
 
 *(Screenshot akan diperbarui saat rilis final)*
 
@@ -75,7 +87,8 @@ Aplikasi ini dibangun menggunakan *stack* teknologi modern:
 
 3.  **Setup Appwrite**
     *   Buat project di [Appwrite Console](https://cloud.appwrite.io).
-    *   Buat Database dan Collection `users`, `items`, `attendances`, `app_settings`.
+    *   Buat Database dan Collection: `users`, `items`, `attendances`, `leaves`, `generated_reports`, `app_settings`.
+    *   Buat Storage Bucket: `general_storage` (untuk PDF/Excel/Foto).
     *   Update `AppwriteConfig` di `lib/core/config` dengan Project ID dan Endpoint Anda.
 
 4.  **Run Application**
@@ -88,17 +101,20 @@ Aplikasi ini dibangun menggunakan *stack* teknologi modern:
 ## 🔐 Akun Demo
 
 Karena menggunakan backend Appwrite, Anda perlu **Register** akun baru melalui aplikasi atau membuat User di Appwrite Console.
-Role default saat register adalah `employee`. Untuk mengubah menjadi `admin`, edit dokumen user di collection `users` dan ubah field `role` menjadi `admin`.
+Role default saat register adalah `employee`. Untuk mengubah menjadi `admin` atau `owner`, edit dokumen user di collection `users` dan ubah field `role`.
 
 ---
 
 ## 🔜 Next Update
 
 Berikut adalah fitur yang direncanakan untuk pembaruan mendatang:
-*   [ ] **Export Laporan (PDF/Excel)**: Fitur untuk mengunduh laporan absensi dan stok barang.
+*   [x] **Export Laporan (PDF/Excel)**: Fitur untuk mengunduh laporan absensi dan stok barang.
+*   [x] **Approval Cuti**: Sistem pengajuan cuti karyawan.
 *   [ ] **Notifikasi (FCM)**: Push notification untuk jam masuk/pulang dan stok menipis.
 *   [ ] **Foto Absensi**: Wajib upload selfie saat melakukan absensi GPS.
-*   [ ] **Approval Cuti**: Sistem pengajuan cuti karyawan.
+*   [ ] **Sistem Penggajian (Payroll)**: Hitung gaji otomatis dan slip gaji sederhana.
+*   [ ] **Stock Opname**: Fitur audit stok manual untuk penyesuaian inventaris.
+*   [ ] **Mode Offline**: Caching data untuk akses tanpa internet sementara.
 
 ---
 

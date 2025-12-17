@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/services/appwrite_service.dart';
 import '../../../auth/data/user_dao.dart';
 import '../../../auth/presentation/auth_controller.dart';
-// import '../../../auth/domain/user.dart';
+import '../../../auth/domain/user.dart';
 
 final userDaoProvider = Provider((ref) => UserDao(AppwriteService.instance));
 final userListProvider = FutureProvider.autoDispose((ref) => ref.read(userDaoProvider).getAllUsers());
@@ -92,6 +93,42 @@ class _UsersTabState extends ConsumerState<UsersTab> {
     );
   }
 
+  Future<void> _pickAndUploadImage(User user) async {
+    final currentUser = ref.read(authControllerProvider).valueOrNull;
+    if (currentUser == null) return;
+
+    // Check permissions
+    if (currentUser.role == 'admin') {
+      if (user.role == 'admin' || user.role == 'owner') {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Admin tidak dapat mengubah akun Admin/Owner.')));
+        return;
+      }
+    }
+
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery, maxWidth: 600);
+
+    if (pickedFile != null) {
+      try {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Uploading photo...')));
+
+        final bytes = await pickedFile.readAsBytes();
+        await ref
+            .read(userDaoProvider)
+            .updateProfilePhoto(user.id, bytes, 'profile_${user.id}_${DateTime.now().millisecondsSinceEpoch}.jpg');
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Foto profil berhasil diupdate')));
+          ref.refresh(userListProvider);
+        }
+      } catch (e) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final usersAsync = ref.watch(userListProvider);
@@ -119,32 +156,59 @@ class _UsersTabState extends ConsumerState<UsersTab> {
               final user = filteredUsers[index];
               return Card(
                 child: ListTile(
-                  leading: CircleAvatar(child: Text(user.role[0].toUpperCase())),
+                  leading: CircleAvatar(
+                    backgroundImage: user.photoUrl != null ? NetworkImage(user.photoUrl!) : null,
+                    child: user.photoUrl == null ? Text(user.role[0].toUpperCase()) : null,
+                  ),
                   title: Text(user.name),
                   subtitle: Text('${user.email} | ${user.role}'),
-                  trailing: Switch(
-                    value: user.isActive,
-                    onChanged: (val) async {
-                      final currentUser = ref.read(authControllerProvider).valueOrNull;
-                      if (currentUser == null) return;
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Switch(
+                        value: user.isActive,
+                        onChanged: (val) async {
+                          final currentUser = ref.read(authControllerProvider).valueOrNull;
+                          if (currentUser == null) return;
 
-                      if (currentUser.role == 'admin') {
-                        // Admin cannot touch Owner or other Admins
-                        if (user.role == 'admin' || user.role == 'owner') {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Admin tidak dapat mengubah akun Admin/Owner.'),
-                              backgroundColor: Colors.red,
+                          if (currentUser.role == 'admin') {
+                            // Admin cannot touch Owner or other Admins
+                            if (user.role == 'admin' || user.role == 'owner') {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Admin tidak dapat mengubah akun Admin/Owner.'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              return;
+                            }
+                          }
+
+                          // If Owner, allowed to do anything (or if Admin touching employee)
+                          await ref.read(userDaoProvider).toggleUserStatus(user.id, val);
+                          return ref.refresh(userListProvider);
+                        },
+                      ),
+                      PopupMenuButton<String>(
+                        onSelected: (value) {
+                          if (value == 'edit_photo') {
+                            _pickAndUploadImage(user);
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'edit_photo',
+                            child: Row(
+                              children: [
+                                Icon(Icons.camera_alt, color: Colors.grey),
+                                SizedBox(width: 8),
+                                Text('Update Foto'),
+                              ],
                             ),
-                          );
-                          return;
-                        }
-                      }
-
-                      // If Owner, allowed to do anything (or if Admin touching employee)
-                      await ref.read(userDaoProvider).toggleUserStatus(user.id, val);
-                      return ref.refresh(userListProvider);
-                    },
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               );

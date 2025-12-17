@@ -93,6 +93,7 @@ class AttendanceDao {
       for (var row in response.rows) {
         final data = row.data;
         String? userName;
+        String? userPhotoUrl;
 
         if (data['userId'] != null || data['user_id'] != null) {
           try {
@@ -103,12 +104,14 @@ class AttendanceDao {
               rowId: uid,
             );
             userName = userRow.data['name'];
+            userPhotoUrl = userRow.data['photoUrl'] ?? userRow.data['photo_url'];
           } catch (_) {}
         }
 
         final attendanceData = Map<String, dynamic>.from(data);
         attendanceData['id'] = row.$id;
         attendanceData['user_name'] = userName;
+        attendanceData['user_photo_url'] = userPhotoUrl;
 
         attendances.add(Attendance.fromJson(attendanceData));
       }
