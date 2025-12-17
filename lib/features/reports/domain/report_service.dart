@@ -158,10 +158,11 @@ class ReportService {
       final score = (presentCount * 10) + (userTransactions * 2.0);
 
       List<String> insights = [];
-      if (presentCount >= 20)
+      if (presentCount >= 20) {
         insights.add("Attendance Excellent");
-      else if (presentCount < 10)
+      } else if (presentCount < 10) {
         insights.add("Attendance Low");
+      }
       if (userTransactions > 50) insights.add("High Transaction Volume");
 
       String explanation = insights.join(', ');
@@ -240,7 +241,9 @@ class ReportService {
     final items = await _itemDao.getAllItems();
     final deadItems = items.where((i) => i.discontinued && i.stock > 0).toList();
     double totalValue = 0;
-    for (var item in deadItems) totalValue += (item.stock * item.price);
+    for (var item in deadItems) {
+      totalValue += (item.stock * item.price);
+    }
     return {'totalValue': totalValue, 'itemCount': deadItems.length, 'items': deadItems};
   }
 

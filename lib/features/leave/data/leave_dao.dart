@@ -12,39 +12,39 @@ class LeaveDao {
   LeaveDao(this._service);
 
   Future<void> createLeave(Leave leave) async {
-    await _service.databases.createDocument(
+    await _service.tables.createRow(
       databaseId: AppwriteConfig.databaseId,
-      collectionId: AppwriteConfig.leavesCollection,
-      documentId: leave.id,
+      tableId: AppwriteConfig.leavesCollection,
+      rowId: leave.id,
       data: leave.toJson(),
     );
   }
 
   Future<List<Leave>> getLeavesByUser(String userId) async {
-    final response = await _service.databases.listDocuments(
+    final response = await _service.tables.listRows(
       databaseId: AppwriteConfig.databaseId,
-      collectionId: AppwriteConfig.leavesCollection,
+      tableId: AppwriteConfig.leavesCollection,
       queries: [Query.equal('userId', userId), Query.orderDesc('\$createdAt')],
     );
-    return response.documents.map((e) => Leave.fromJson(e.data)).toList();
+    return response.rows.map((e) => Leave.fromJson(e.data)).toList();
   }
 
   Future<List<Leave>> getPendingLeaves() async {
-    final response = await _service.databases.listDocuments(
+    final response = await _service.tables.listRows(
       databaseId: AppwriteConfig.databaseId,
-      collectionId: AppwriteConfig.leavesCollection,
+      tableId: AppwriteConfig.leavesCollection,
       queries: [Query.equal('status', 'pending'), Query.orderAsc('\$createdAt')],
     );
-    return response.documents.map((e) => Leave.fromJson(e.data)).toList();
+    return response.rows.map((e) => Leave.fromJson(e.data)).toList();
   }
 
   Future<List<Leave>> getAllLeaves() async {
-    final response = await _service.databases.listDocuments(
+    final response = await _service.tables.listRows(
       databaseId: AppwriteConfig.databaseId,
-      collectionId: AppwriteConfig.leavesCollection,
+      tableId: AppwriteConfig.leavesCollection,
       queries: [Query.orderDesc('\$createdAt')],
     );
-    return response.documents.map((e) => Leave.fromJson(e.data)).toList();
+    return response.rows.map((e) => Leave.fromJson(e.data)).toList();
   }
 
   Future<void> updateStatus(String leaveId, String status, {String? adminId, String? pdfFileId}) async {
@@ -52,10 +52,10 @@ class LeaveDao {
     if (adminId != null) data['adminId'] = adminId;
     if (pdfFileId != null) data['pdfFileId'] = pdfFileId;
 
-    await _service.databases.updateDocument(
+    await _service.tables.updateRow(
       databaseId: AppwriteConfig.databaseId,
-      collectionId: AppwriteConfig.leavesCollection,
-      documentId: leaveId,
+      tableId: AppwriteConfig.leavesCollection,
+      rowId: leaveId,
       data: data,
     );
   }

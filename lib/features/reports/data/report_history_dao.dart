@@ -12,21 +12,21 @@ class ReportHistoryDao {
   ReportHistoryDao(this._service);
 
   Future<void> saveReport(GeneratedReport report) async {
-    await _service.databases.createDocument(
+    await _service.tables.createRow(
       databaseId: AppwriteConfig.databaseId,
-      collectionId: AppwriteConfig.generatedReportsCollection,
-      documentId: ID.unique(),
+      tableId: AppwriteConfig.generatedReportsCollection,
+      rowId: ID.unique(),
       data: report.toJson(),
     );
   }
 
   Future<List<GeneratedReport>> getHistory() async {
-    final response = await _service.databases.listDocuments(
+    final response = await _service.tables.listRows(
       databaseId: AppwriteConfig.databaseId,
-      collectionId: AppwriteConfig.generatedReportsCollection,
+      tableId: AppwriteConfig.generatedReportsCollection,
       queries: [Query.orderDesc('\$createdAt')],
     );
-    return response.documents.map((e) => GeneratedReport.fromJson(e.data)).toList();
+    return response.rows.map((e) => GeneratedReport.fromJson(e.data)).toList();
   }
 
   Future<String> uploadFile(List<int> bytes, String filename) async {

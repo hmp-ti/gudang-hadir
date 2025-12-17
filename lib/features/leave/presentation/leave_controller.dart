@@ -69,7 +69,7 @@ class LeaveController extends StateNotifier<AsyncValue<void>> {
 
       // 2. Upload to Appwrite
       final fileId = const Uuid().v4();
-      final file = await AppwriteService.instance.storage.createFile(
+      await AppwriteService.instance.storage.createFile(
         bucketId: AppwriteConfig.storageBucketId,
         fileId: fileId,
         file: InputFile.fromBytes(filename: 'surat_cuti_${leave.id}.pdf', bytes: pdfBytes),

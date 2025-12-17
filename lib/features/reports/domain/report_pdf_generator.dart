@@ -50,7 +50,7 @@ class ReportPdfGenerator {
               style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
             ),
             pw.SizedBox(height: 10),
-            pw.Table.fromTextArray(
+            pw.TableHelper.fromTextArray(
               headers: ['Item', 'Category', 'Stock', 'Price', 'Value'],
               data: items
                   .map(
@@ -80,7 +80,7 @@ class ReportPdfGenerator {
               style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
             ),
             pw.SizedBox(height: 10),
-            pw.Table.fromTextArray(
+            pw.TableHelper.fromTextArray(
               headers: ['Item', 'Stock', 'Min', 'Order Qty', 'Est Cost'],
               data: list.map((e) {
                 final item = e['item'] as Item;
@@ -104,7 +104,7 @@ class ReportPdfGenerator {
           children: [
             pw.Text('Dead Stock Value: ${CurrencyFormatter.format(val.toDouble())}'),
             pw.SizedBox(height: 10),
-            pw.Table.fromTextArray(
+            pw.TableHelper.fromTextArray(
               headers: ['Item', 'Category', 'Stock', 'Price', 'Value'],
               data: items
                   .map(
@@ -124,7 +124,7 @@ class ReportPdfGenerator {
 
       if (title == 'Item Turnover') {
         final items = data['items'] as List<Map<String, dynamic>>;
-        return pw.Table.fromTextArray(
+        return pw.TableHelper.fromTextArray(
           headers: ['Item', 'Stock', 'Qty Moved', 'Turnover Rate'],
           data: items.map((e) {
             final item = e['item'] as Item;
@@ -140,7 +140,7 @@ class ReportPdfGenerator {
 
       if (title == 'Employee Performance') {
         final rankings = data['rankings'] as List<Map<String, dynamic>>;
-        return pw.Table.fromTextArray(
+        return pw.TableHelper.fromTextArray(
           headers: ['Name', 'Days Present', 'Trans. Count', 'Score', 'Insight'],
           data: rankings.map((e) {
             // Map User object? Or simply data map?
@@ -162,7 +162,7 @@ class ReportPdfGenerator {
 
       if (title == 'Leave Report') {
         final leaves = data['leaves'] as List<dynamic>;
-        return pw.Table.fromTextArray(
+        return pw.TableHelper.fromTextArray(
           headers: ['Reason', 'Start', 'End', 'Status'],
           data: leaves.map((e) {
             // e is Leave object
@@ -173,7 +173,7 @@ class ReportPdfGenerator {
 
       if (title == 'Attendance Report') {
         final list = data['data'] as List<dynamic>;
-        return pw.Table.fromTextArray(
+        return pw.TableHelper.fromTextArray(
           headers: ['Name', 'Role', 'Date', 'In', 'Out'],
           data: list.map((e) {
             final att = e['attendance'];

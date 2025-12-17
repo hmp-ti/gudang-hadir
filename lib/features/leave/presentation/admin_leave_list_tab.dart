@@ -37,7 +37,7 @@ class AdminLeaveListTab extends ConsumerWidget {
                 return ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: list.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  separatorBuilder: (context, index) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final item = list[index];
                     final start = DateFormat('d MMM').format(DateTime.parse(item.startDate));

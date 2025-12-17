@@ -92,14 +92,7 @@ class _AdminAttendanceTabState extends ConsumerState<AdminAttendanceTab> {
                   final todayStr = DateFormat('yyyy-MM-dd').format(now);
 
                   if (_filterType == 'Hari Ini') {
-                    filteredList = list.where((a) {
-                      try {
-                        final d = DateTime.parse(a.date);
-                        return d.year == now.year && d.month == now.month && d.day == now.day;
-                      } catch (_) {
-                        return false;
-                      }
-                    }).toList();
+                    filteredList = list.where((a) => a.date == todayStr).toList();
                   } else if (_filterType == 'Minggu Ini') {
                     // Last 7 days
                     final start = now.subtract(const Duration(days: 7));

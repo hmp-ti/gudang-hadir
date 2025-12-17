@@ -323,8 +323,9 @@ class _ReportSelectionPageState extends ConsumerState<ReportSelectionPage> {
       // 3. Open File
       final result = await OpenFilex.open(file.path);
       if (result.type != ResultType.done) {
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not open file: ${result.message}')));
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -353,8 +354,9 @@ class _ReportSelectionPageState extends ConsumerState<ReportSelectionPage> {
           : FutureBuilder<List<GeneratedReport>>(
               future: reportService.getHistory(),
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting)
+                if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
+                }
                 if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
 
                 final reports = snapshot.data ?? [];
@@ -390,7 +392,7 @@ class _ReportSelectionPageState extends ConsumerState<ReportSelectionPage> {
                         leading: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: (report.format == 'pdf' ? Colors.red : Colors.green).withOpacity(0.1),
+                            color: (report.format == 'pdf' ? Colors.red : Colors.green).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
@@ -478,7 +480,7 @@ class _ReportSelectionPageState extends ConsumerState<ReportSelectionPage> {
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
         leading: CircleAvatar(
-          backgroundColor: color.withOpacity(0.1),
+          backgroundColor: color.withValues(alpha: 0.1),
           foregroundColor: color,
           radius: 24,
           child: Icon(icon, size: 28),
@@ -503,7 +505,7 @@ class _FilterChip extends StatelessWidget {
       label: Text(label),
       selected: selected,
       onSelected: onSelected,
-      selectedColor: Theme.of(context).primaryColor.withOpacity(0.2),
+      selectedColor: Theme.of(context).primaryColor.withValues(alpha: 0.2),
       checkmarkColor: Theme.of(context).primaryColor,
       side: BorderSide.none,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),

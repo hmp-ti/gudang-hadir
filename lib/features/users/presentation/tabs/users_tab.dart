@@ -75,7 +75,8 @@ class _UsersTabState extends ConsumerState<UsersTab> {
                       await ref.read(userDaoProvider).insertUser(newUser);
                       if (context.mounted) {
                         Navigator.pop(context);
-                        return ref.refresh(userListProvider);
+                        ref.invalidate(userListProvider);
+                        return;
                       }
                     } catch (e) {
                       if (context.mounted) {
@@ -121,7 +122,7 @@ class _UsersTabState extends ConsumerState<UsersTab> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Foto profil berhasil diupdate')));
-          ref.refresh(userListProvider);
+          ref.invalidate(userListProvider);
         }
       } catch (e) {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
@@ -186,7 +187,7 @@ class _UsersTabState extends ConsumerState<UsersTab> {
 
                           // If Owner, allowed to do anything (or if Admin touching employee)
                           await ref.read(userDaoProvider).toggleUserStatus(user.id, val);
-                          return ref.refresh(userListProvider);
+                          ref.invalidate(userListProvider);
                         },
                       ),
                       PopupMenuButton<String>(

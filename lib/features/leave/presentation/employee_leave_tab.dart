@@ -45,7 +45,7 @@ class _EmployeeLeaveTabState extends ConsumerState<EmployeeLeaveTab> {
           return ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: leaves.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final item = leaves[index];
               final start = DateFormat('d MMM').format(DateTime.parse(item.startDate));
@@ -68,7 +68,7 @@ class _EmployeeLeaveTabState extends ConsumerState<EmployeeLeaveTab> {
                       : Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: color.withOpacity(0.1),
+                            color: color.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(color: color),
                           ),
@@ -161,6 +161,7 @@ class _EmployeeLeaveTabState extends ConsumerState<EmployeeLeaveTab> {
 
   Future<void> _downloadFile(String fileId) async {
     try {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Mengunduh surat...')));
       final bytes = await AppwriteService.instance.storage.getFileDownload(
         bucketId: AppwriteConfig.storageBucketId,
@@ -171,10 +172,14 @@ class _EmployeeLeaveTabState extends ConsumerState<EmployeeLeaveTab> {
       final file = File('${dir.path}/surat_cuti_$fileId.pdf');
       await file.writeAsBytes(bytes);
 
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      OpenFilex.open(file.path);
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        OpenFilex.open(file.path);
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal download: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal download: $e')));
+      }
     }
   }
 }
