@@ -48,7 +48,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.lock_person_rounded, size: 80, color: Color(0xFF0D47A1)),
+              Image.asset('assets/images/logo_gudang_hadir.png', width: 120, height: 120),
               const SizedBox(height: 16),
               const Text(
                 'Selamat Datang',

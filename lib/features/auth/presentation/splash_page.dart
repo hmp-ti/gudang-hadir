@@ -19,7 +19,7 @@ class SplashPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Spacer(),
-            const Icon(Icons.warehouse_rounded, size: 100, color: Colors.white),
+            Image.asset('assets/images/logo_gudang_hadir.png', width: 150, height: 150),
             const SizedBox(height: 24),
             const Text(
               'Gudang Hadir',

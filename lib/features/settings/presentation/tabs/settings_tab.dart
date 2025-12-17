@@ -104,6 +104,40 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
                   const Text('Print QR ini dan tempel di lokasi absen.'),
                   const SizedBox(height: 16),
                   Center(child: _buildQrCode(token)),
+                  const SizedBox(height: 16),
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Perbarui QR Token?'),
+                            content: const Text(
+                              'QR Code yang lama tidak akan berlaku lagi. Pastikan Anda mencetak QR Code yang baru.',
+                            ),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text('Ya, Perbarui'),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirm == true) {
+                          await ref.read(settingsControllerProvider.notifier).regenerateQrToken();
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(
+                              context,
+                            ).showSnackBar(const SnackBar(content: Text('Token QR berhasil diperbarui!')));
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Perbarui Token QR'),
+                    ),
+                  ),
                   const SizedBox(height: 32),
                   const Divider(),
                   SizedBox(
