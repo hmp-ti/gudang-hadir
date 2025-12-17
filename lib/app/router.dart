@@ -35,7 +35,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Authenticated
       if (isSplash || isLogin) {
         final user = authState.valueOrNull!;
-        if (user.role == 'admin') {
+        if (user.role == 'admin' || user.role == 'owner') {
           return '/admin';
         } else {
           return '/employee';

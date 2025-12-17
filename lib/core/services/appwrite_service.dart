@@ -8,6 +8,7 @@ class AppwriteService {
   late final Account account;
   late final Databases databases;
   late final TablesDB tables;
+  late final Storage storage;
 
   AppwriteService._init() {
     client = Client()
@@ -18,5 +19,6 @@ class AppwriteService {
     account = Account(client);
     databases = Databases(client);
     tables = TablesDB(client);
+    storage = Storage(client);
   }
 }

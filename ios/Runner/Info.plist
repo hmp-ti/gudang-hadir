@@ -51,5 +51,7 @@
 	<string>Aplikasi membutuhkan akses lokasi untuk validasi kehadiran fisik di gudang.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Aplikasi membutuhkan akses lokasi untuk validasi kehadiran fisik di gudang.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Aplikasi membutuhkan akses galeri untuk mengunggah tanda tangan dan stempel.</string>
 </dict>
 </plist>

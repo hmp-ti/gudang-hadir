@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../../../core/utils/constants.dart';
+import '../signature_settings_page.dart';
 // import '../../../../core/utils/validators.dart';
 import '../settings_controller.dart';
 import '../../../auth/presentation/auth_controller.dart';
@@ -59,6 +60,19 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
                     label: const Text('Set Lokasi Saat Ini (Sebagai Gudang)'),
                     onPressed: () => _updateLocation(context, ref),
                   ),
+
+                  // Only for Owner
+                  if (ref.read(authControllerProvider).valueOrNull?.role == 'owner') ...[
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.draw),
+                      label: const Text('Konfigurasi Tanda Tangan'),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.purple, foregroundColor: Colors.white),
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const SignatureSettingsPage()));
+                      },
+                    ),
+                  ],
 
                   const SizedBox(height: 24),
                   _buildSectionTitle('Radius Absensi (meter)'),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'tabs/employee_home_tab.dart';
 import 'tabs/history_tab.dart';
+import '../../leave/presentation/employee_leave_tab.dart';
 import '../../profile/presentation/tabs/profile_tab.dart';
 
 class EmployeeMainPage extends StatefulWidget {
@@ -13,7 +14,7 @@ class EmployeeMainPage extends StatefulWidget {
 class _EmployeeMainPageState extends State<EmployeeMainPage> {
   int _currentIndex = 0;
 
-  final List<Widget> _tabs = const [EmployeeHomeTab(), HistoryTab(), ProfileTab()];
+  final List<Widget> _tabs = const [EmployeeHomeTab(), HistoryTab(), EmployeeLeaveTab(), ProfileTab()];
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +28,11 @@ class _EmployeeMainPageState extends State<EmployeeMainPage> {
             _currentIndex = index;
           });
         },
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
           BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Riwayat'),
+          BottomNavigationBarItem(icon: Icon(Icons.description), label: 'Cuti'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
         ],
       ),
