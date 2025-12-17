@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/services/appwrite_service.dart';
 import '../../../../core/utils/constants.dart';
 import '../../auth/data/auth_repository.dart';
+import '../../auth/presentation/auth_controller.dart';
 import '../../settings/data/settings_dao.dart';
 import '../data/attendance_dao.dart';
 import '../domain/attendance.dart';
@@ -13,7 +14,13 @@ import '../domain/attendance.dart';
 final attendanceDaoProvider = Provider((ref) => AttendanceDao(AppwriteService.instance));
 final settingsDaoProvider = Provider((ref) => SettingsDao(AppwriteService.instance));
 
-final attendanceControllerProvider = StateNotifierProvider<AttendanceController, AsyncValue<Attendance?>>((ref) {
+final attendanceControllerProvider = StateNotifierProvider.autoDispose<AttendanceController, AsyncValue<Attendance?>>((
+  ref,
+) {
+  // Watch auth changes. If user ID changes (e.g. logout/login), this provider rebuilds.
+  // We use select to avoid rebuilding on loading state changes if ID is same.
+  ref.watch(authControllerProvider.select((value) => value.valueOrNull?.id));
+
   return AttendanceController(
     ref.read(attendanceDaoProvider),
     ref.read(settingsDaoProvider),
