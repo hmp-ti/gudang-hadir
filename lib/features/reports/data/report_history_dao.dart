@@ -42,6 +42,23 @@ class ReportHistoryDao {
     return await _service.storage.getFileDownload(bucketId: AppwriteConfig.storageBucketId, fileId: fileId);
   }
 
+  Future<void> deleteReport(String documentId, String fileId) async {
+    // 1. Delete file from Storage
+    try {
+      await _service.storage.deleteFile(bucketId: AppwriteConfig.storageBucketId, fileId: fileId);
+    } catch (e) {
+      // Ignore if file not found (maybe already deleted manually)
+      // but log it if we had a logger
+    }
+
+    // 2. Delete document from Database
+    await _service.tables.deleteRow(
+      databaseId: AppwriteConfig.databaseId,
+      tableId: AppwriteConfig.generatedReportsCollection,
+      rowId: documentId,
+    );
+  }
+
   String getFileView(String fileId) {
     // We return the file ID mostly, but full URL is useful if public.
     // For now, return constructed URL as fallback.

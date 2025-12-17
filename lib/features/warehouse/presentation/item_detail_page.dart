@@ -1,24 +1,72 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../domain/item.dart';
 import 'item_form_page.dart';
 import 'transaction_form_page.dart';
+import 'item_history_page.dart';
+import 'warehouse_controller.dart';
 
-class ItemDetailPage extends StatelessWidget {
+class ItemDetailPage extends ConsumerWidget {
   final Item item;
   const ItemDetailPage({super.key, required this.item});
 
+  Future<void> _handleDelete(BuildContext context, WidgetRef ref) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus Barang?'),
+        content: Text('Barang "${item.name}" akan dihapus permanen beserta riwayatnya (jika ada).'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        await ref.read(warehouseControllerProvider.notifier).deleteItem(item.id);
+        if (context.mounted) {
+          Navigator.pop(context); // Close detail page
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Barang berhasil dihapus')));
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus: $e')));
+        }
+      }
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: Text(item.name),
         actions: [
           IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: 'Riwayat Transaksi',
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => ItemHistoryPage(item: item)));
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.edit),
+            tooltip: 'Edit Barang',
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (_) => ItemFormPage(item: item)));
             },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red),
+            tooltip: 'Hapus Barang',
+            onPressed: () => _handleDelete(context, ref),
           ),
         ],
       ),

@@ -21,6 +21,10 @@ final pendingLeavesProvider = FutureProvider.autoDispose((ref) async {
   return ref.read(leaveDaoProvider).getPendingLeaves();
 });
 
+final allLeavesProvider = FutureProvider.autoDispose((ref) async {
+  return ref.read(leaveDaoProvider).getAllLeaves();
+});
+
 // Controller for Actions
 final leaveControllerProvider = StateNotifierProvider<LeaveController, AsyncValue<void>>((ref) {
   return LeaveController(ref.read(leaveDaoProvider), ref.read(authRepositoryProvider), ref);
@@ -79,7 +83,9 @@ class LeaveController extends StateNotifier<AsyncValue<void>> {
       await _dao.updateStatus(leave.id, 'approved', adminId: admin.id, pdfFileId: fileId);
 
       state = const AsyncValue.data(null);
-      return _ref.refresh(pendingLeavesProvider.future);
+      // Refresh both pending and all
+      _ref.refresh(pendingLeavesProvider.future);
+      return _ref.refresh(allLeavesProvider.future);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -93,9 +99,30 @@ class LeaveController extends StateNotifier<AsyncValue<void>> {
 
       await _dao.updateStatus(leaveId, 'rejected', adminId: admin.id);
       state = const AsyncValue.data(null);
-      return _ref.refresh(pendingLeavesProvider.future);
+      _ref.refresh(pendingLeavesProvider.future);
+      return _ref.refresh(allLeavesProvider.future);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
+  }
+
+  Future<void> deleteLeave(String leaveId) async {
+    state = const AsyncValue.loading();
+    try {
+      await _dao.deleteLeave(leaveId);
+      state = const AsyncValue.data(null);
+      _ref.refresh(pendingLeavesProvider.future);
+      _ref.refresh(allLeavesProvider.future);
+      return _ref.refresh(myLeavesProvider.future);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<List<int>> downloadPdf(String fileId) async {
+    return await AppwriteService.instance.storage.getFileDownload(
+      bucketId: AppwriteConfig.storageBucketId,
+      fileId: fileId,
+    );
   }
 }

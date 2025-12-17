@@ -1,19 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../presentation/attendance_controller.dart'; // To reuse DAO provider
-
-// Provider to fetch ALL attendance for today
-final adminAttendanceTodayProvider = FutureProvider.autoDispose((ref) async {
-  final dao = ref.read(attendanceDaoProvider);
-  // final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-  // Reuse getHistory but without userId filter to get everyone
-  // Wait, getHistory implementation in Step 37 handled userId optional.
-  return dao.getHistory(); // We might need to filter by date in DAO or here.
-  // Step 37 DAO `getHistory` does NOT have date filter yet (it had placeholders).
-  // I should update DAO or just fetch all and filter in memory (not efficient but okay for offline/small).
-  // Let's rely on memory filter for now given constraints.
-});
+import '../../data/attendance_dao.dart';
+import '../../domain/attendance.dart';
 
 class AdminAttendanceTab extends ConsumerStatefulWidget {
   const AdminAttendanceTab({super.key});
@@ -25,11 +14,85 @@ class AdminAttendanceTab extends ConsumerStatefulWidget {
 class _AdminAttendanceTabState extends ConsumerState<AdminAttendanceTab> {
   String _filterType = 'Hari Ini';
   DateTime? _customDate;
+  bool _isLoading = false;
+  List<Attendance> _attendanceList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fetchData());
+  }
+
+  Future<void> _fetchData() async {
+    setState(() => _isLoading = true);
+    try {
+      final dao = ref.read(attendanceDaoProvider);
+      final now = DateTime.now();
+      List<Attendance> result = [];
+
+      if (_filterType == 'Hari Ini') {
+        final today = DateFormat('yyyy-MM-dd').format(now);
+        result = await dao.getAttendanceByDate(today);
+      } else if (_filterType == 'Minggu Ini') {
+        final start = now.subtract(const Duration(days: 7));
+        result = await dao.getAttendanceByDateRange(start, now);
+      } else if (_filterType == 'Bulan Ini') {
+        final start = DateTime(now.year, now.month, 1);
+        final end = DateTime(now.year, now.month + 1, 0);
+        result = await dao.getAttendanceByDateRange(start, end);
+      } else if (_filterType == 'Pilih Tanggal' && _customDate != null) {
+        final target = DateFormat('yyyy-MM-dd').format(_customDate!);
+        result = await dao.getAttendanceByDate(target);
+      }
+
+      if (mounted) {
+        setState(() {
+          _attendanceList = result;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _deleteAttendance(Attendance item) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus Absensi?'),
+        content: Text('Data absensi ${item.userName} pada tanggal ${item.date} akan dihapus.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        await ref.read(attendanceDaoProvider).deleteAttendance(item.id);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Data berhasil dihapus')));
+          _fetchData();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus: $e')));
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final listAsync = ref.watch(adminAttendanceTodayProvider);
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
@@ -66,11 +129,13 @@ class _AdminAttendanceTabState extends ConsumerState<AdminAttendanceTab> {
                             _customDate = picked;
                             _filterType = 'Pilih Tanggal';
                           });
+                          _fetchData();
                         }
                       } else {
                         setState(() {
                           _filterType = val!;
                         });
+                        _fetchData();
                       }
                     },
                   ),
@@ -83,87 +148,82 @@ class _AdminAttendanceTabState extends ConsumerState<AdminAttendanceTab> {
           // List Section
           Expanded(
             child: RefreshIndicator(
-              onRefresh: () async => ref.refresh(adminAttendanceTodayProvider.future),
-              child: listAsync.when(
-                data: (list) {
-                  // Filter Logic
-                  List<dynamic> filteredList = [];
-                  final now = DateTime.now();
-                  final todayStr = DateFormat('yyyy-MM-dd').format(now);
-
-                  if (_filterType == 'Hari Ini') {
-                    filteredList = list.where((a) => a.date == todayStr).toList();
-                  } else if (_filterType == 'Minggu Ini') {
-                    // Last 7 days
-                    final start = now.subtract(const Duration(days: 7));
-                    filteredList = list.where((a) {
-                      final d = DateTime.parse(a.date);
-                      return d.isAfter(start) && d.isBefore(now.add(const Duration(days: 1)));
-                    }).toList();
-                  } else if (_filterType == 'Bulan Ini') {
-                    final start = DateTime(now.year, now.month, 1);
-                    filteredList = list.where((a) {
-                      final d = DateTime.parse(a.date);
-                      return d.isAfter(start.subtract(const Duration(days: 1)));
-                    }).toList();
-                  } else if (_filterType == 'Pilih Tanggal' && _customDate != null) {
-                    final target = DateFormat('yyyy-MM-dd').format(_customDate!);
-                    filteredList = list.where((a) => a.date == target).toList();
-                  } else {
-                    filteredList = list;
-                  }
-
-                  if (filteredList.isEmpty) {
-                    return ListView(
+              onRefresh: _fetchData,
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _attendanceList.isEmpty
+                  ? ListView(
                       children: const [
                         SizedBox(height: 100),
                         Center(child: Text('Tidak ada data absensi.')),
                       ],
-                    );
-                  }
-
-                  return ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: filteredList.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final item = filteredList[index];
-                      return Card(
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: Colors.blue.shade100,
-                            backgroundImage: item.userPhotoUrl != null ? NetworkImage(item.userPhotoUrl!) : null,
-                            child: item.userPhotoUrl == null ? const Icon(Icons.person, color: Colors.blue) : null,
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _attendanceList.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final item = _attendanceList[index];
+                        return Card(
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: Colors.blue.shade100,
+                              backgroundImage: item.userPhotoUrl != null ? NetworkImage(item.userPhotoUrl!) : null,
+                              child: item.userPhotoUrl == null ? const Icon(Icons.person, color: Colors.blue) : null,
+                            ),
+                            title: Text(
+                              item.userName ?? 'User ???',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(DateFormat('d MMM yyyy').format(DateTime.parse(item.date))),
+                                Text(
+                                  'Masuk: ${item.checkInTime != null ? DateFormat('HH:mm').format(item.checkInTime!) : '-'}  |  Plg: ${item.checkOutTime != null ? DateFormat('HH:mm').format(item.checkOutTime!) : '-'}',
+                                  style: const TextStyle(color: Colors.black87),
+                                ),
+                              ],
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      item.checkOutTime != null ? Icons.check_circle : Icons.timer,
+                                      color: item.checkOutTime != null ? Colors.green : Colors.orange,
+                                    ),
+                                    Text(
+                                      item.checkOutTime != null ? 'Done' : 'Shift',
+                                      style: const TextStyle(fontSize: 10),
+                                    ),
+                                  ],
+                                ),
+                                PopupMenuButton<String>(
+                                  onSelected: (val) {
+                                    if (val == 'delete') _deleteAttendance(item);
+                                  },
+                                  itemBuilder: (context) => [
+                                    const PopupMenuItem(
+                                      value: 'delete',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.delete, color: Colors.red),
+                                          SizedBox(width: 8),
+                                          Text('Hapus', style: TextStyle(color: Colors.red)),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                          title: Text(item.userName ?? 'User ???', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(DateFormat('d MMM yyyy').format(DateTime.parse(item.date))),
-                              Text(
-                                'Masuk: ${item.checkInTime != null ? DateFormat('HH:mm').format(item.checkInTime!) : '-'}  |  Plg: ${item.checkOutTime != null ? DateFormat('HH:mm').format(item.checkOutTime!) : '-'}',
-                                style: const TextStyle(color: Colors.black87),
-                              ),
-                            ],
-                          ),
-                          trailing: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                item.checkOutTime != null ? Icons.check_circle : Icons.timer,
-                                color: item.checkOutTime != null ? Colors.green : Colors.orange,
-                              ),
-                              Text(item.checkOutTime != null ? 'Done' : 'Shift', style: const TextStyle(fontSize: 10)),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, st) => Center(child: Text('Error: $e')),
-              ),
+                        );
+                      },
+                    ),
             ),
           ),
         ],

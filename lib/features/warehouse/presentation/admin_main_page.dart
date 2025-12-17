@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gudang_hadir/features/auth/presentation/auth_controller.dart';
+import 'package:gudang_hadir/features/profile/presentation/tabs/profile_tab.dart';
 import '../../users/presentation/tabs/users_tab.dart';
 import '../../settings/presentation/tabs/settings_tab.dart';
 import '../../attendance/presentation/tabs/employee_home_tab.dart';
@@ -29,6 +30,7 @@ class _AdminMainPageState extends ConsumerState<AdminMainPage> {
       const AdminRecapTab(), // Rekap
       const UsersTab(), // Karyawan
       const SettingsTab(), // Setting
+      const ProfileTab(), // Profile
     ];
 
     return Scaffold(
@@ -48,6 +50,7 @@ class _AdminMainPageState extends ConsumerState<AdminMainPage> {
           BottomNavigationBarItem(icon: Icon(Icons.description), label: 'Rekap'),
           BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Karyawan'),
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Setting'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );

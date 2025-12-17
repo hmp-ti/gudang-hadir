@@ -105,6 +105,8 @@ class ReportService {
 
   Future<List<GeneratedReport>> getHistory() => _historyDao.getHistory();
 
+  Future<void> deleteReport(String documentId, String fileId) => _historyDao.deleteReport(documentId, fileId);
+
   // --- Report Date Filtering Logic ---
 
   Future<Map<String, dynamic>> getItemTurnover({int days = 30, DateTime? start, DateTime? end}) async {
@@ -249,6 +251,22 @@ class ReportService {
 
   Future<Map<String, dynamic>> getLeaveReport() async {
     final leaves = await _leaveDao.getAllLeaves();
-    return {'totalLeaves': leaves.length, 'leaves': leaves};
+    final users = await _userDao.getAllUsers();
+
+    List<Map<String, dynamic>> enrichedLeaves = [];
+    for (var leave in leaves) {
+      String name = leave.userName;
+      if (name.isEmpty) {
+        final user = users.cast<dynamic>().firstWhere((u) => u.id == leave.userId, orElse: () => null);
+        if (user != null) name = user.name;
+      }
+
+      // Feature: Check work days before leave start
+      final prevWorkDays = await _attendanceDao.getAttendanceCountBefore(leave.userId, leave.startDate);
+
+      enrichedLeaves.add({'leave': leave, 'name': name.isEmpty ? 'Unknown' : name, 'prevWorkDays': prevWorkDays});
+    }
+
+    return {'totalLeaves': leaves.length, 'leaves': enrichedLeaves};
   }
 }

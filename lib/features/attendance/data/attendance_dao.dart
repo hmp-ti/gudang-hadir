@@ -1,4 +1,5 @@
 import 'package:appwrite/appwrite.dart';
+import 'package:appwrite/models.dart' as models;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/config/appwrite_config.dart';
 import '../../../../core/services/appwrite_service.dart';
@@ -47,27 +48,10 @@ class AttendanceDao {
       final response = await _appwrite.tables.listRows(
         databaseId: AppwriteConfig.databaseId,
         tableId: AppwriteConfig.attendancesCollection,
-        queries: [
-          Query.between('date', startStr, endStr),
-          Query.limit(1000), // Max limit usually 100 on cloud, maybe 1000 on self-hosted/newer?
-          // Pagination logic needed for generic reports but for MVP we take first batch or assume limit.
-          // Default limit is usually 25.
-          // Important: Appwrite listRows has limit.
-        ],
+        queries: [Query.between('date', startStr, endStr), Query.limit(100), Query.orderDesc('date')],
       );
 
-      final attendances = <Attendance>[];
-      for (var row in response.rows) {
-        final data = row.data;
-        // Need user name for report?
-        // Let's lazy load or just return ID. ReportService handles name if needed or we fetch here.
-        // ReportService iterates users, so we just need counts.
-
-        final attendanceData = Map<String, dynamic>.from(data);
-        attendanceData['id'] = row.$id;
-        attendances.add(Attendance.fromJson(attendanceData));
-      }
-      return attendances;
+      return mapRowsToAttendance(response.rows);
     } catch (e) {
       return [];
     }
@@ -146,5 +130,78 @@ class AttendanceDao {
         ..remove('user_name')
         ..remove('createdAt'),
     );
+  }
+
+  Future<void> deleteAttendance(String id) async {
+    await _appwrite.tables.deleteRow(
+      databaseId: AppwriteConfig.databaseId,
+      tableId: AppwriteConfig.attendancesCollection,
+      rowId: id,
+    );
+  }
+
+  Future<List<Attendance>> getAttendanceByDate(String date) async {
+    try {
+      final response = await _appwrite.tables.listRows(
+        databaseId: AppwriteConfig.databaseId,
+        tableId: AppwriteConfig.attendancesCollection,
+        queries: [
+          Query.equal('date', date),
+          Query.orderDesc('\$createdAt'),
+          Query.limit(100), // Ensure we get enough for a day
+        ],
+      );
+
+      return mapRowsToAttendance(response.rows);
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<List<Attendance>> mapRowsToAttendance(List<models.Row> rows) async {
+    final attendances = <Attendance>[];
+    for (var row in rows) {
+      final data = row.data;
+      String? userName;
+      String? userPhotoUrl;
+
+      if (data['userId'] != null || data['user_id'] != null) {
+        try {
+          final uid = data['userId'] ?? data['user_id'];
+          final userRow = await _appwrite.tables.getRow(
+            databaseId: AppwriteConfig.databaseId,
+            tableId: AppwriteConfig.usersCollection,
+            rowId: uid,
+          );
+          userName = userRow.data['name'];
+          userPhotoUrl = userRow.data['photoUrl'] ?? userRow.data['photo_url'];
+        } catch (_) {}
+      }
+
+      final attendanceData = Map<String, dynamic>.from(data);
+      attendanceData['id'] = row.$id;
+      attendanceData['user_name'] = userName;
+      attendanceData['user_photo_url'] = userPhotoUrl;
+
+      attendances.add(Attendance.fromJson(attendanceData));
+    }
+    return attendances;
+  }
+
+  Future<int> getAttendanceCountBefore(String userId, String date) async {
+    try {
+      final response = await _appwrite.tables.listRows(
+        databaseId: AppwriteConfig.databaseId,
+        tableId: AppwriteConfig.attendancesCollection,
+        queries: [
+          Query.equal('userId', userId),
+          Query.lessThan('date', date),
+          Query.limit(1), // We only need the total count
+        ],
+      );
+      return response.total;
+    } catch (e) {
+      return 0;
+    }
   }
 }

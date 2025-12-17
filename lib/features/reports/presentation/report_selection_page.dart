@@ -305,6 +305,41 @@ class _ReportSelectionPageState extends ConsumerState<ReportSelectionPage> {
     }
   }
 
+  Future<void> _handleDeleteReport(GeneratedReport report) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus Laporan?'),
+        content: Text('Laporan "${report.title}" akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _isLoading = true);
+    try {
+      await ref.read(reportServiceProvider).deleteReport(report.id, report.fileId);
+      if (mounted) {
+        setState(() {}); // Refresh list
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Laporan berhasil dihapus')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus laporan: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   Future<void> _handleOpenReport(GeneratedReport report) async {
     setState(() => _isLoading = true);
     try {
@@ -419,6 +454,8 @@ class _ReportSelectionPageState extends ConsumerState<ReportSelectionPage> {
                               ScaffoldMessenger.of(
                                 context,
                               ).showSnackBar(const SnackBar(content: Text('Link download berhasil disalin')));
+                            } else if (value == 'delete') {
+                              _handleDeleteReport(report);
                             }
                           },
                           itemBuilder: (context) => [
@@ -439,6 +476,16 @@ class _ReportSelectionPageState extends ConsumerState<ReportSelectionPage> {
                                   Icon(Icons.copy, color: Colors.grey),
                                   SizedBox(width: 8),
                                   Text('Salin Link Download'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete, color: Colors.red),
+                                  SizedBox(width: 8),
+                                  Text('Hapus Laporan', style: TextStyle(color: Colors.red)),
                                 ],
                               ),
                             ),

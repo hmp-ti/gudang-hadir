@@ -59,4 +59,12 @@ class LeaveDao {
       data: data,
     );
   }
+
+  Future<void> deleteLeave(String id) async {
+    await _service.tables.deleteRow(
+      databaseId: AppwriteConfig.databaseId,
+      tableId: AppwriteConfig.leavesCollection,
+      rowId: id,
+    );
+  }
 }

@@ -1,8 +1,10 @@
 import 'dart:typed_data';
+import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../../warehouse/domain/item.dart';
+import '../../leave/domain/leave.dart';
 import '../../../core/utils/currency_formatter.dart';
 
 class ReportPdfGenerator {
@@ -16,9 +18,6 @@ class ReportPdfGenerator {
       ),
     );
 
-    // Save and Open
-    // On Android/iOS: Printing.layoutPdf or Printing.sharePdf
-    // The user requirement says "report yang bisa dijadikan PDF". Sharing is best.
     await Printing.sharePdf(bytes: await pdf.save(), filename: '$title.pdf');
     return await pdf.save();
   }
@@ -30,13 +29,15 @@ class ReportPdfGenerator {
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
           pw.Text(title, style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
-          pw.Text('Generated: ${DateTime.now().toString().split('.')[0]}'),
+          pw.Text('Generated: ${DateFormat('dd MMM yyyy HH:mm').format(DateTime.now())}'),
         ],
       ),
     );
   }
 
   static pw.Widget _buildContent(String title, Map<String, dynamic> data) {
+    final dateFormatter = DateFormat('dd MMM yyyy');
+
     try {
       if (title == 'Stock Valuation') {
         final items = data['items'] as List<Item>;
@@ -143,9 +144,7 @@ class ReportPdfGenerator {
         return pw.TableHelper.fromTextArray(
           headers: ['Name', 'Days Present', 'Trans. Count', 'Score', 'Insight'],
           data: rankings.map((e) {
-            // Map User object? Or simply data map?
-            // In ReportService we put 'user' as User object.
-            final user = e['user']; // User type
+            final user = e['user'];
             final name = user.name;
             return [
               name,
@@ -162,12 +161,26 @@ class ReportPdfGenerator {
 
       if (title == 'Leave Report') {
         final leaves = data['leaves'] as List<dynamic>;
+        // Now leaves is list of Map {'leave': Leave, 'name': String}
+
         return pw.TableHelper.fromTextArray(
-          headers: ['Reason', 'Start', 'End', 'Status'],
+          headers: ['Name', 'Reason', 'Start', 'End', 'Status'],
           data: leaves.map((e) {
-            // e is Leave object
-            return [e.reason, e.startDate.toString().split(' ')[0], e.endDate.toString().split(' ')[0], e.status];
+            final leave = e['leave'] as Leave;
+            final name = e['name'] as String;
+
+            // Safe date formatting
+            String start = leave.startDate;
+            String end = leave.endDate;
+            try {
+              start = dateFormatter.format(DateTime.parse(leave.startDate));
+              end = dateFormatter.format(DateTime.parse(leave.endDate));
+            } catch (_) {}
+
+            return [name, leave.reason, start, end, leave.status];
           }).toList(),
+          headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+          cellStyle: const pw.TextStyle(fontSize: 9),
         );
       }
 
@@ -178,13 +191,24 @@ class ReportPdfGenerator {
           data: list.map((e) {
             final att = e['attendance'];
             final role = e['role'] ?? 'staff';
-            return [
-              att.userName ?? att.userId,
-              role,
-              att.date,
-              att.checkInTime != null ? att.checkInTime.toString().split(' ')[1].substring(0, 5) : '-',
-              att.checkOutTime != null ? att.checkOutTime.toString().split(' ')[1].substring(0, 5) : '-',
-            ];
+
+            // Format check-in/out
+            String inTime = '-';
+            String outTime = '-';
+            String dateStr = att.date;
+
+            try {
+              dateStr = dateFormatter.format(DateTime.parse(att.date));
+            } catch (_) {}
+
+            if (att.checkInTime != null) {
+              inTime = DateFormat('HH:mm').format(att.checkInTime!);
+            }
+            if (att.checkOutTime != null) {
+              outTime = DateFormat('HH:mm').format(att.checkOutTime!);
+            }
+
+            return [att.userName ?? att.userId, role, dateStr, inTime, outTime];
           }).toList(),
         );
       }
