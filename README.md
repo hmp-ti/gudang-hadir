@@ -1,8 +1,8 @@
 # GudangHadir
 
-![GudangHadir Banner](https://via.placeholder.com/1200x400.png?text=GudangHadir+Digital+System)
-
 <div align="center">
+
+<img src="assets/images/logo_gudang_hadir.png" width="150" alt="GudangHadir Logo" />
 
 **Sistem Informasi Gudang Terintegrasi dengan Absensi Digital**
 
@@ -32,7 +32,7 @@ Created with ❤️ by **Himpunan Mahasiswa Prodi Teknik Informatika (HMP-TI)**
 *   **Geo-Tagging (GPS)**: Validasi lokasi karyawan untuk memastikan kehadiran di tempat kerja.
 *   **Riwayat**: Karyawan dapat melihat log kehadiran mereka sendiri.
 
-#### � Laporan & Analisis (Baru)
+#### � Laporan & Analisis
 *   **5 Laporan Utama**: Valuasi Stok, Reorder Plan, Item Turnover, Kinerja Karyawan, Histori Absensi.
 *   **Export Fleksibel**: Unduh laporan dalam format **PDF** atau **Excel**.
 *   **Cloud History**: Riwayat laporan tersimpan otomatis di cloud dan bisa diunduh kapan saja tanpa generate ulang.
@@ -40,12 +40,14 @@ Created with ❤️ by **Himpunan Mahasiswa Prodi Teknik Informatika (HMP-TI)**
 
 #### 📝 Cuti & Perizinan
 *   **Pengajuan Mudah**: Karyawan mengajukan cuti/ sakit/ izin langsung dari aplikasi.
-*   **Approval System**: Admin/Owner menyetujui atau menolak pengajuan dengan validasi.
-*   **Tanda Tangan Digital**: Pengesahan dokumen PDF secara digital oleh Owner.
+*   **Smart Approval**: Admin dapat melihat **Riwayat Kehadiran** karyawan sebelum tanggal cuti untuk bahan pertimbangan.
+*   **Approval System**: Setujui atau tolak dengan satu klik.
+*   **Surat Cuti Digital**: Otomatis generate PDF surat cuti yang sah.
 
-#### �👥 Manajemen Pengguna
-*   **Multi-Role**: Dukungan untuk akun **Admin**, **Owner**, dan **Karyawan**.
-*   **Keamanan**: Sistem login yang aman dengan validasi sesi.
+#### 👥 Manajemen Pengguna & Utilitas
+*   **Multi-Role**: Admin, Owner, Employee dengan hak akses berbeda.
+*   **Data Seeding**: Fitur "Seed Reports" untuk mengisi data dummy (User, Absensi, Transaksi, Cuti) guna keperluan testing/demo.
+*   **Profile Management**: Update foto dan info profil pengguna.
 
 ---
 
@@ -66,9 +68,7 @@ Aplikasi ini dibangun menggunakan *stack* teknologi modern:
 
 | Login Screen | Dashboard Admin | Scan QR | Reporting |
 |:---:|:---:|:---:|:---:|
-| ![Login](https://via.placeholder.com/200x400?text=Login) | ![Dashboard](https://via.placeholder.com/200x400?text=Dashboard) | ![Scan](https://via.placeholder.com/200x400?text=Scan) | ![Reporting](https://via.placeholder.com/200x400?text=Reporting) |
-
-*(Screenshot akan diperbarui saat rilis final)*
+| ![Login](assets/screenshot/login.png) | ![Dashboard](assets/screenshot/dashboard.png) | ![Scan](assets/screenshot/qr.png) | ![Reporting](assets/screenshot/report.png) |
 
 ---
 
@@ -88,6 +88,7 @@ Aplikasi ini dibangun menggunakan *stack* teknologi modern:
 3.  **Setup Appwrite**
     *   Buat project di [Appwrite Console](https://cloud.appwrite.io).
     *   Buat Database dan Collection: `users`, `items`, `attendances`, `leaves`, `generated_reports`, `app_settings`.
+    *   **PENTING**: Lihat file [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) untuk detail lengkap tabel dan kolom yang harus dibuat.
     *   Buat Storage Bucket: `general_storage` (untuk PDF/Excel/Foto).
     *   Update `AppwriteConfig` di `lib/core/config` dengan Project ID dan Endpoint Anda.
 
@@ -105,16 +106,17 @@ Role default saat register adalah `employee`. Untuk mengubah menjadi `admin` ata
 
 ---
 
-## 🔜 Next Update
+## 🔜 Next Update / Upcoming Features
 
-Berikut adalah fitur yang direncanakan untuk pembaruan mendatang:
-*   [x] **Export Laporan (PDF/Excel)**: Fitur untuk mengunduh laporan absensi dan stok barang.
-*   [x] **Approval Cuti**: Sistem pengajuan cuti karyawan.
-*   [ ] **Notifikasi (FCM)**: Push notification untuk jam masuk/pulang dan stok menipis.
-*   [ ] **Foto Absensi**: Wajib upload selfie saat melakukan absensi GPS.
-*   [ ] **Sistem Penggajian (Payroll)**: Hitung gaji otomatis dan slip gaji sederhana.
-*   [ ] **Stock Opname**: Fitur audit stok manual untuk penyesuaian inventaris.
-*   [ ] **Mode Offline**: Caching data untuk akses tanpa internet sementara.
+Berikut adalah fitur yang direncanakan untuk pengembangan selanjutnya:
+
+*   [ ] **Notifikasi (FCM)**: Push notification real-time ke HP karyawan saat cuti disetujui atau stok menipis.
+*   [ ] **Dashboard Chart**: Visualisasi data (Grafik Batang/Pie) di Dashboard Admin untuk insight instan.
+*   [ ] **Foto Absensi (Selfie)**: Mewajibkan foto selfie saat melakukan absensi via GPS untuk validasi tambahan.
+*   [ ] **Barcode Scanner Barang**: Scan barcode produk menggunakan kamera HP untuk Stock Opname atau Transaksi cepat.
+*   [ ] **Sistem Penggajian (Payroll)**: Hitung gaji otomatis berdasarkan kehadiran dan denda keterlambatan/absen.
+*   [ ] **Multi-Gudang**: Dukungan untuk mengelola stok di lebih dari satu lokasi cabang.
+*   [ ] **Dark Mode System**: Tema gelap yang menyesuaikan pengaturan sistem HP pengguna.
 
 ---
 
