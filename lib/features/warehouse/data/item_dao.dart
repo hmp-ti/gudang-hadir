@@ -1,9 +1,12 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart' as models;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/config/appwrite_config.dart';
 import '../../../../core/services/appwrite_service.dart';
 
 import '../domain/item.dart';
+
+final itemDaoProvider = Provider((ref) => ItemDao(AppwriteService.instance));
 
 class ItemDao {
   final AppwriteService _appwrite;

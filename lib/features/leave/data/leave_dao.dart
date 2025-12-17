@@ -1,7 +1,10 @@
 import 'package:appwrite/appwrite.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/config/appwrite_config.dart';
 import '../../../../core/services/appwrite_service.dart';
 import '../domain/leave.dart';
+
+final leaveDaoProvider = Provider((ref) => LeaveDao(AppwriteService.instance));
 
 class LeaveDao {
   final AppwriteService _service;
@@ -31,6 +34,15 @@ class LeaveDao {
       databaseId: AppwriteConfig.databaseId,
       collectionId: AppwriteConfig.leavesCollection,
       queries: [Query.equal('status', 'pending'), Query.orderAsc('\$createdAt')],
+    );
+    return response.documents.map((e) => Leave.fromJson(e.data)).toList();
+  }
+
+  Future<List<Leave>> getAllLeaves() async {
+    final response = await _service.databases.listDocuments(
+      databaseId: AppwriteConfig.databaseId,
+      collectionId: AppwriteConfig.leavesCollection,
+      queries: [Query.orderDesc('\$createdAt')],
     );
     return response.documents.map((e) => Leave.fromJson(e.data)).toList();
   }

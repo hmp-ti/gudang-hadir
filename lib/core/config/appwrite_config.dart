@@ -10,6 +10,7 @@ class AppwriteConfig {
   static const String transactionsCollection = 'transactions';
   static const String attendancesCollection = 'attendances';
   static const String leavesCollection = 'leaves';
+  static const String generatedReportsCollection = 'generated_reports';
   static const String storageBucketId = 'general_storage';
 }
 

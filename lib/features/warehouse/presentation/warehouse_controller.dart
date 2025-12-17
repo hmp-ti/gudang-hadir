@@ -1,14 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
-import '../../../../core/services/appwrite_service.dart';
 import '../data/item_dao.dart';
 import '../data/transaction_dao.dart';
 import '../domain/item.dart';
 import '../domain/transaction.dart';
 
-// Providers
-final itemDaoProvider = Provider((ref) => ItemDao(AppwriteService.instance));
-final transactionDaoProvider = Provider((ref) => TransactionDao(AppwriteService.instance));
+// Providers moved to respective DAOs
 
 final warehouseControllerProvider = StateNotifierProvider<WarehouseController, AsyncValue<List<Item>>>((ref) {
   return WarehouseController(ref.read(itemDaoProvider), ref.read(transactionDaoProvider));

@@ -1,8 +1,11 @@
 import 'package:appwrite/appwrite.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/config/appwrite_config.dart';
 import '../../../../core/services/appwrite_service.dart';
 
 import '../domain/transaction.dart';
+
+final transactionDaoProvider = Provider((ref) => TransactionDao(AppwriteService.instance));
 
 class TransactionDao {
   final AppwriteService _appwrite;

@@ -1,8 +1,11 @@
 import 'package:appwrite/appwrite.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/config/appwrite_config.dart';
 import '../../../../core/services/appwrite_service.dart';
 
 import '../domain/attendance.dart';
+
+final attendanceDaoProvider = Provider((ref) => AttendanceDao(AppwriteService.instance));
 
 class AttendanceDao {
   final AppwriteService _appwrite;
@@ -26,6 +29,48 @@ class AttendanceDao {
       throw 'CheckIn Error: $e';
     }
     return null;
+  }
+
+  Future<List<Attendance>> getAttendanceByDateRange(DateTime startDate, DateTime endDate) async {
+    try {
+      // Appwrite queries for date range
+      // Assuming 'date' field is stored as 'YYYY-MM-DD' String or DateTime?
+      // Domain model says 'date' is String (YYYY-MM-DD). Date filtering on Strings works if format is ISO.
+      // Attendance has 'date' field (String).
+
+      // We can also use 'createdAt' but 'date' is safer for logical day.
+      // Let's use 'date' field filtering.
+      // Format DateTime to YYYY-MM-DD
+      String startStr = startDate.toIso8601String().split('T')[0];
+      String endStr = endDate.toIso8601String().split('T')[0];
+
+      final response = await _appwrite.tables.listRows(
+        databaseId: AppwriteConfig.databaseId,
+        tableId: AppwriteConfig.attendancesCollection,
+        queries: [
+          Query.between('date', startStr, endStr),
+          Query.limit(1000), // Max limit usually 100 on cloud, maybe 1000 on self-hosted/newer?
+          // Pagination logic needed for generic reports but for MVP we take first batch or assume limit.
+          // Default limit is usually 25.
+          // Important: Appwrite listRows has limit.
+        ],
+      );
+
+      final attendances = <Attendance>[];
+      for (var row in response.rows) {
+        final data = row.data;
+        // Need user name for report?
+        // Let's lazy load or just return ID. ReportService handles name if needed or we fetch here.
+        // ReportService iterates users, so we just need counts.
+
+        final attendanceData = Map<String, dynamic>.from(data);
+        attendanceData['id'] = row.$id;
+        attendances.add(Attendance.fromJson(attendanceData));
+      }
+      return attendances;
+    } catch (e) {
+      return [];
+    }
   }
 
   Future<List<Attendance>> getHistory({String? userId, DateTime? startDate, DateTime? endDate}) async {
