@@ -1,14 +1,5 @@
 class AppConstants {
-  static const String appName = 'GudangHadir';
-  static const String dbName = 'gudang_hadir.db';
-  static const int dbVersion = 1;
-
-  // Tables
-  static const String tableUsers = 'users';
-  static const String tableItems = 'items';
-  static const String tableTransactions = 'warehouse_transactions';
-  static const String tableAttendances = 'attendances';
-  static const String tableAppSettings = 'app_settings';
+  static const String appName = 'Gudang Hadir';
 
   // Shared Preferences Keys
   static const String keyCurrentUserId = 'current_user_id';

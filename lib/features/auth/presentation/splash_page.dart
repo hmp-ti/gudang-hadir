@@ -22,7 +22,7 @@ class SplashPage extends StatelessWidget {
             const Icon(Icons.warehouse_rounded, size: 100, color: Colors.white),
             const SizedBox(height: 24),
             const Text(
-              'GudangHadir',
+              'Gudang Hadir',
               style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1.2),
             ),
             const SizedBox(height: 8),

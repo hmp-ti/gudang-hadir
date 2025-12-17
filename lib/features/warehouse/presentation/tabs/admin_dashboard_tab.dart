@@ -22,64 +22,70 @@ class AdminDashboardTab extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5), // Light grey background
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Dashboard Admin',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0D47A1)),
-            ),
-            const SizedBox(height: 16),
-            statsAsync.when(
-              data: (stats) => Row(
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await ref.refresh(dashboardStatsProvider.future);
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Dashboard Admin',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0D47A1)),
+              ),
+              const SizedBox(height: 16),
+              statsAsync.when(
+                data: (stats) => Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        'Total\nBarang',
+                        stats['totalItems'].toString(),
+                        Colors.blue,
+                        Icons.inventory_2,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildStatCard(
+                        'Stok\nMenipis',
+                        stats['lowStock'].toString(),
+                        Colors.orange,
+                        Icons.warning_amber,
+                        isWarning: true,
+                      ),
+                    ),
+                  ],
+                ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, st) => Text('Error: $e'),
+              ),
+              const SizedBox(height: 32),
+              const Text(
+                'Aksi Cepat',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF0D47A1)),
+              ),
+              const SizedBox(height: 16),
+              Row(
                 children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      'Total\nBarang',
-                      stats['totalItems'].toString(),
-                      Colors.blue,
-                      Icons.inventory_2,
-                    ),
-                  ),
+                  _buildActionButton(context, 'Kelola\nBarang', Icons.list_alt, Colors.teal, () {
+                    // Navigate to Items Tab (index 1) handled by Main Page logic or separate check
+                    // For now just show info
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Buka Tab Gudang')));
+                  }),
                   const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildStatCard(
-                      'Stok\nMenipis',
-                      stats['lowStock'].toString(),
-                      Colors.orange,
-                      Icons.warning_amber,
-                      isWarning: true,
-                    ),
-                  ),
+                  _buildActionButton(context, 'Scan\nMasuk', Icons.qr_code_scanner, Colors.purple, () {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(const SnackBar(content: Text('Fitur Scan Admin (Segera)')));
+                  }),
                 ],
               ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, st) => Text('Error: $e'),
-            ),
-            const SizedBox(height: 32),
-            const Text(
-              'Aksi Cepat',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF0D47A1)),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                _buildActionButton(context, 'Kelola\nBarang', Icons.list_alt, Colors.teal, () {
-                  // Navigate to Items Tab (index 1) handled by Main Page logic or separate check
-                  // For now just show info
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Buka Tab Gudang')));
-                }),
-                const SizedBox(width: 16),
-                _buildActionButton(context, 'Scan\nMasuk', Icons.qr_code_scanner, Colors.purple, () {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(const SnackBar(content: Text('Fitur Scan Admin (Segera)')));
-                }),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

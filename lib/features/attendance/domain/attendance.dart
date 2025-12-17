@@ -9,6 +9,9 @@ class Attendance {
   final double? lat;
   final double? lng;
   final bool isValid;
+  final String? note;
+  final double? totalDuration;
+  final int? overtimeHours;
   final DateTime createdAt;
 
   // Optional: Join
@@ -25,40 +28,59 @@ class Attendance {
     this.lat,
     this.lng,
     required this.isValid,
+    this.note,
+    this.totalDuration,
+    this.overtimeHours,
     required this.createdAt,
     this.userName,
   });
 
   factory Attendance.fromJson(Map<String, dynamic> json) {
+    T? getVal<T>(String camel, String snake) {
+      if (json.containsKey(camel) && json[camel] != null) return json[camel] as T?;
+      if (json.containsKey(snake) && json[snake] != null) return json[snake] as T?;
+      return null;
+    }
+
     return Attendance(
-      id: json['id'],
-      userId: json['user_id'],
+      id: json['id'] ?? json['\$id'],
+      userId: getVal<String>('userId', 'user_id') ?? '',
       date: json['date'],
-      checkInTime: json['check_in_time'] != null ? DateTime.parse(json['check_in_time']) : null,
-      checkOutTime: json['check_out_time'] != null ? DateTime.parse(json['check_out_time']) : null,
-      checkInMethod: json['check_in_method'],
-      checkOutMethod: json['check_out_method'],
-      lat: json['lat'],
-      lng: json['lng'],
-      isValid: (json['is_valid'] as int) == 1,
-      createdAt: DateTime.parse(json['created_at']),
-      userName: json['user_name'],
+      checkInTime: DateTime.tryParse(getVal<String>('checkInTime', 'check_in_time') ?? ''),
+      checkOutTime: DateTime.tryParse(getVal<String>('checkOutTime', 'check_out_time') ?? ''),
+      checkInMethod: getVal<String>('checkInMethod', 'check_in_method'),
+      checkOutMethod: getVal<String>('checkOutMethod', 'check_out_method'),
+      lat: (getVal<num>('lat', 'lat'))?.toDouble(),
+      lng: (getVal<num>('lng', 'lng'))?.toDouble(),
+      isValid:
+          (json['isValid'] is bool && json['isValid'] == true) ||
+          (json['is_valid'] is bool && json['is_valid'] == true) ||
+          (json['isValid'] is int && json['isValid'] == 1) ||
+          (json['is_valid'] is int && json['is_valid'] == 1),
+      note: getVal<String>('note', 'note'),
+      totalDuration: (getVal<num>('totalDuration', 'total_duration'))?.toDouble(),
+      overtimeHours: getVal<int>('overtimeHours', 'overtime_hours'),
+      createdAt: DateTime.tryParse(getVal<String>('createdAt', 'created_at') ?? '') ?? DateTime.now(),
+      userName: getVal<String>('userName', 'user_name'),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'user_id': userId,
+      'userId': userId, // DB requires 'userId'
       'date': date,
-      'check_in_time': checkInTime?.toIso8601String(),
-      'check_out_time': checkOutTime?.toIso8601String(),
-      'check_in_method': checkInMethod,
-      'check_out_method': checkOutMethod,
+      'checkInTime': checkInTime?.toIso8601String(), // likely camel
+      'checkOutTime': checkOutTime?.toIso8601String(),
+      'checkInMethod': checkInMethod,
+      'checkOutMethod': checkOutMethod,
       'lat': lat,
       'lng': lng,
-      'is_valid': isValid ? 1 : 0,
-      'created_at': createdAt.toIso8601String(),
+      'isValid': isValid,
+      'note': note,
+      'totalDuration': totalDuration,
+      'overtimeHours': overtimeHours,
+      'createdAt': createdAt.toIso8601String(),
     };
   }
 }

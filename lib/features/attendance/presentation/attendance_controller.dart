@@ -52,12 +52,15 @@ class AttendanceController extends StateNotifier<AsyncValue<Attendance?>> {
       final user = await _authRepository.getCurrentUser();
       if (user == null) throw Exception('Session expired');
 
+      double saveLat = 0;
+      double saveLng = 0;
+
       // 1. Validate Method
       if (method == 'QR') {
         if (qrPayload == null) throw Exception('QR Payload empty');
         try {
           final data = jsonDecode(qrPayload);
-          if (data['app'] != 'GudangHadir') throw Exception('QR tidak valid');
+          if (data['app'] != AppConstants.appName) throw Exception('QR tidak valid');
 
           final token = await _settingsDao.getSetting(AppConstants.keyQrSecretToken);
           if (data['token'] != token) throw Exception('Token QR salah!');
@@ -75,6 +78,10 @@ class AttendanceController extends StateNotifier<AsyncValue<Attendance?>> {
         final radius = double.parse(await _settingsDao.getSetting(AppConstants.keyAttendanceRadius) ?? '100');
 
         final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+
+        saveLat = pos.latitude;
+        saveLng = pos.longitude;
+
         final dist = Geolocator.distanceBetween(whLat, whLng, pos.latitude, pos.longitude);
 
         if (dist > radius) {
@@ -96,8 +103,8 @@ class AttendanceController extends StateNotifier<AsyncValue<Attendance?>> {
           checkInMethod: method,
           isValid: true,
           createdAt: now,
-          lat: 0, // Simplified, ideal: capture current lat/lng always
-          lng: 0,
+          lat: saveLat,
+          lng: saveLng,
         );
         await _attendanceDao.insertAttendance(newAtt);
       } else {

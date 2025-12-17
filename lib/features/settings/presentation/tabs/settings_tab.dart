@@ -120,7 +120,7 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
   }
 
   Widget _buildQrCode(String token) {
-    final payload = jsonEncode({"app": "GudangHadir", "type": "ATTENDANCE_POINT", "token": token});
+    final payload = jsonEncode({"app": "Gudang Hadir", "type": "ATTENDANCE_POINT", "token": token});
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -133,7 +133,7 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
         children: [
           QrImageView(data: payload, version: QrVersions.auto, size: 200.0),
           const SizedBox(height: 8),
-          const Text('Scan pakai App GudangHadir', style: TextStyle(fontSize: 12)),
+          const Text('Scan pakai App Gudang Hadir', style: TextStyle(fontSize: 12)),
         ],
       ),
     );

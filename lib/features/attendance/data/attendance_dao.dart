@@ -14,23 +14,26 @@ class AttendanceDao {
       final response = await _appwrite.tables.listRows(
         databaseId: AppwriteConfig.databaseId,
         tableId: AppwriteConfig.attendancesCollection,
-        queries: [Query.equal('user_id', userId), Query.equal('date', date)],
+        queries: [Query.equal('userId', userId), Query.equal('date', date)],
       );
       if (response.rows.isNotEmpty) {
         return Attendance.fromJson(response.rows.first.data..['id'] = response.rows.first.$id);
       }
-      return null;
-    } catch (_) {
-      return null;
+    } catch (e) {
+      // If index missing or other error, we must know.
+      // But if purely "not found" (empty list), that's handled above.
+      // So this catch blocks API errors. Rethrow.
+      throw 'CheckIn Error: $e';
     }
+    return null;
   }
 
   Future<List<Attendance>> getHistory({String? userId, DateTime? startDate, DateTime? endDate}) async {
     try {
-      List<String> queries = [Query.orderDesc('date'), Query.orderDesc('created_at')];
+      List<String> queries = [Query.orderDesc('date'), Query.orderDesc('\$createdAt')];
 
       if (userId != null) {
-        queries.add(Query.equal('user_id', userId));
+        queries.add(Query.equal('userId', userId));
       }
       // Date filtering logic if needed, similar to TransactionDao
 
@@ -46,12 +49,13 @@ class AttendanceDao {
         final data = row.data;
         String? userName;
 
-        if (data['user_id'] != null) {
+        if (data['userId'] != null || data['user_id'] != null) {
           try {
+            final uid = data['userId'] ?? data['user_id'];
             final userRow = await _appwrite.tables.getRow(
               databaseId: AppwriteConfig.databaseId,
               tableId: AppwriteConfig.usersCollection,
-              rowId: data['user_id'],
+              rowId: uid,
             );
             userName = userRow.data['name'];
           } catch (_) {}
@@ -66,7 +70,9 @@ class AttendanceDao {
 
       return attendances;
     } catch (e) {
-      return [];
+      // Return empty if just not found? No, listRows shouldn't fail if empty.
+      // If error (like index missing), we want to know.
+      throw 'History Error: $e';
     }
   }
 
@@ -77,7 +83,8 @@ class AttendanceDao {
       rowId: attendance.id,
       data: attendance.toJson()
         ..remove('id')
-        ..remove('user_name'),
+        ..remove('user_name')
+        ..remove('createdAt'), // System attribute, cannot written manually
     );
   }
 
@@ -88,7 +95,8 @@ class AttendanceDao {
       rowId: attendance.id,
       data: attendance.toJson()
         ..remove('id')
-        ..remove('user_name'),
+        ..remove('user_name')
+        ..remove('createdAt'),
     );
   }
 }

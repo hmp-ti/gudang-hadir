@@ -18,7 +18,7 @@ class _EmployeeMainPageState extends State<EmployeeMainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('GudangHadir')),
+      appBar: AppBar(title: const Text('Gudang Hadir')),
       body: _tabs[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,

@@ -20,66 +20,95 @@ class HistoryTab extends ConsumerWidget {
     final historyAsync = ref.watch(attendanceHistoryProvider);
 
     return Scaffold(
-      body: historyAsync.when(
-        data: (list) {
-          if (list.isEmpty) return const Center(child: Text('Belum ada riwayat absensi'));
-
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: list.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final item = list[index];
-              final dateStr = DateFormat('EEEE, d MMM yyyy', 'id_ID').format(DateTime.parse(item.date));
-              final checkIn = item.checkInTime != null ? DateFormat('HH:mm').format(item.checkInTime!) : '-';
-              final checkOut = item.checkOutTime != null ? DateFormat('HH:mm').format(item.checkOutTime!) : '-';
-
-              return Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(dateStr, style: const TextStyle(fontWeight: FontWeight.bold)),
-                          Text(
-                            item.isValid ? 'Valid' : 'Invalid',
-                            style: TextStyle(color: item.isValid ? Colors.green : Colors.red),
-                          ),
-                        ],
-                      ),
-                      const Divider(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Masuk', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                              Text(checkIn, style: const TextStyle(fontSize: 16)),
-                              Text(item.checkInMethod ?? '', style: const TextStyle(fontSize: 10, color: Colors.grey)),
-                            ],
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              const Text('Pulang', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                              Text(checkOut, style: const TextStyle(fontSize: 16)),
-                              Text(item.checkOutMethod ?? '', style: const TextStyle(fontSize: 10, color: Colors.grey)),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Re-fetch history
+          // ref.refresh returns the result of the provider. For FutureProvider, it's the future.
+          // Wait for it to complete.
+          await ref.refresh(attendanceHistoryProvider.future);
+        },
+        child: historyAsync.when(
+          data: (list) {
+            if (list.isEmpty) {
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: SizedBox(
+                  height: MediaQuery.of(context).size.height - 200, // Approximate available height
+                  child: const Center(child: Text('Belum ada riwayat absensi')),
                 ),
               );
-            },
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, st) => Center(child: Text('Error: $e')),
+            }
+
+            return ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              itemCount: list.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final item = list[index];
+                final dateStr = DateFormat('EEEE, d MMM yyyy', 'id_ID').format(DateTime.parse(item.date));
+                final checkIn = item.checkInTime != null ? DateFormat('HH:mm').format(item.checkInTime!) : '-';
+                final checkOut = item.checkOutTime != null ? DateFormat('HH:mm').format(item.checkOutTime!) : '-';
+
+                return Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(dateStr, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text(
+                              item.isValid ? 'Valid' : 'Invalid',
+                              style: TextStyle(color: item.isValid ? Colors.green : Colors.red),
+                            ),
+                          ],
+                        ),
+                        const Divider(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Masuk', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                Text(checkIn, style: const TextStyle(fontSize: 16)),
+                                Text(
+                                  item.checkInMethod ?? '',
+                                  style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                const Text('Pulang', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                Text(checkOut, style: const TextStyle(fontSize: 16)),
+                                Text(
+                                  item.checkOutMethod ?? '',
+                                  style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, st) => SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height - 200,
+              child: Center(child: Text('Error: $e')),
+            ),
+          ),
+        ),
       ),
     );
   }

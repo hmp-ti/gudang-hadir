@@ -18,7 +18,7 @@ Created with ❤️ by **Himpunan Mahasiswa Prodi Teknik Informatika (HMP-TI)**
 
 ## 📖 Tentang Aplikasi
 
-**GudangHadir** adalah solusi all-in-one untuk manajemen stok gudang dan absensi karyawan yang dirancang khusus untuk operasional bisnis modern. Dibangun menggunakan teknologi **Flutter** terbaru, aplikasi ini menawarkan antarmuka yang modern, cepat, dan mudah digunakan (User Friendly).
+**Gudang Hadir** adalah solusi all-in-one untuk manajemen stok gudang dan absensi karyawan yang dirancang khusus untuk operasional bisnis modern. Dibangun menggunakan teknologi **Flutter** terbaru, aplikasi ini menawarkan antarmuka yang modern, cepat, dan mudah digunakan (User Friendly).
 
 ### 🚀 Fitur Utama
 
@@ -44,7 +44,7 @@ Aplikasi ini dibangun menggunakan *stack* teknologi modern:
 *   **Framework**: Flutter SDK (Minimal SDK 36)
 *   **Language**: Dart 3.x
 *   **State Management**: Flutter Riverpod
-*   **Database**: SQLite (sqflite)
+*   **Backend & Database**: Appwrite Cloud (Database, Auth, Storage)
 *   **Navigation**: GoRouter
 *   **Features**: Mobile Scanner (QR), Geolocator (GPS)
 
@@ -73,7 +73,12 @@ Aplikasi ini dibangun menggunakan *stack* teknologi modern:
     flutter pub get
     ```
 
-3.  **Run Application**
+3.  **Setup Appwrite**
+    *   Buat project di [Appwrite Console](https://cloud.appwrite.io).
+    *   Buat Database dan Collection `users`, `items`, `attendances`, `app_settings`.
+    *   Update `AppwriteConfig` di `lib/core/config` dengan Project ID dan Endpoint Anda.
+
+4.  **Run Application**
     ```bash
     flutter run
     ```
@@ -82,14 +87,18 @@ Aplikasi ini dibangun menggunakan *stack* teknologi modern:
 
 ## 🔐 Akun Demo
 
-Untuk pengujian, gunakan akun berikut yang telah terdaftar secara default pada saat instalasi:
+Karena menggunakan backend Appwrite, Anda perlu **Register** akun baru melalui aplikasi atau membuat User di Appwrite Console.
+Role default saat register adalah `employee`. Untuk mengubah menjadi `admin`, edit dokumen user di collection `users` dan ubah field `role` menjadi `admin`.
 
-| Role | Username | Password |
-| :--- | :--- | :--- |
-| **Admin** | `admin` | `123456` |
-| **Karyawan** | `user1` | `123456` |
+---
 
-> **Catatan**: Password disimpan dengan format sederhana untuk tujuan demonstrasi.
+## 🔜 Next Update
+
+Berikut adalah fitur yang direncanakan untuk pembaruan mendatang:
+*   [ ] **Export Laporan (PDF/Excel)**: Fitur untuk mengunduh laporan absensi dan stok barang.
+*   [ ] **Notifikasi (FCM)**: Push notification untuk jam masuk/pulang dan stok menipis.
+*   [ ] **Foto Absensi**: Wajib upload selfie saat melakukan absensi GPS.
+*   [ ] **Approval Cuti**: Sistem pengajuan cuti karyawan.
 
 ---
 
