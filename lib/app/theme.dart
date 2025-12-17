@@ -10,7 +10,6 @@ class AppTheme {
         primary: const Color(0xFF0D47A1),
         secondary: const Color(0xFF00695C), // Teal
         surface: Colors.white,
-        background: const Color(0xFFF5F5F5),
       ),
       fontFamily: GoogleFonts.poppins().fontFamily,
       appBarTheme: const AppBarTheme(
