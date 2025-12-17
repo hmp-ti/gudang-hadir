@@ -1,62 +1,94 @@
-import 'package:sqflite/sqflite.dart';
-import '../../../../core/db/app_database.dart';
-import '../../../../core/utils/constants.dart';
+import 'package:appwrite/appwrite.dart';
+import '../../../../core/config/appwrite_config.dart';
+import '../../../../core/services/appwrite_service.dart';
+
 import '../domain/attendance.dart';
 
 class AttendanceDao {
-  final AppDatabase _appDatabase;
+  final AppwriteService _appwrite;
 
-  AttendanceDao(this._appDatabase);
+  AttendanceDao(this._appwrite);
 
   Future<Attendance?> getAttendanceToday(String userId, String date) async {
-    final db = await _appDatabase.database;
-    final maps = await db.query(
-      AppConstants.tableAttendances,
-      where: 'user_id = ? AND date = ?',
-      whereArgs: [userId, date],
-    );
-    if (maps.isNotEmpty) return Attendance.fromJson(maps.first);
-    return null;
+    try {
+      final response = await _appwrite.tables.listRows(
+        databaseId: AppwriteConfig.databaseId,
+        tableId: AppwriteConfig.attendancesCollection,
+        queries: [Query.equal('user_id', userId), Query.equal('date', date)],
+      );
+      if (response.rows.isNotEmpty) {
+        return Attendance.fromJson(response.rows.first.data..['id'] = response.rows.first.$id);
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<List<Attendance>> getHistory({String? userId, DateTime? startDate, DateTime? endDate}) async {
-    final db = await _appDatabase.database;
+    try {
+      List<String> queries = [Query.orderDesc('date'), Query.orderDesc('created_at')];
 
-    String whereClause = '1=1';
-    List<dynamic> whereArgs = [];
+      if (userId != null) {
+        queries.add(Query.equal('user_id', userId));
+      }
+      // Date filtering logic if needed, similar to TransactionDao
 
-    if (userId != null) {
-      whereClause += ' AND a.user_id = ?';
-      whereArgs.add(userId);
+      final response = await _appwrite.tables.listRows(
+        databaseId: AppwriteConfig.databaseId,
+        tableId: AppwriteConfig.attendancesCollection,
+        queries: queries,
+      );
+
+      final attendances = <Attendance>[];
+
+      for (var row in response.rows) {
+        final data = row.data;
+        String? userName;
+
+        if (data['user_id'] != null) {
+          try {
+            final userRow = await _appwrite.tables.getRow(
+              databaseId: AppwriteConfig.databaseId,
+              tableId: AppwriteConfig.usersCollection,
+              rowId: data['user_id'],
+            );
+            userName = userRow.data['name'];
+          } catch (_) {}
+        }
+
+        final attendanceData = Map<String, dynamic>.from(data);
+        attendanceData['id'] = row.$id;
+        attendanceData['user_name'] = userName;
+
+        attendances.add(Attendance.fromJson(attendanceData));
+      }
+
+      return attendances;
+    } catch (e) {
+      return [];
     }
-    if (startDate != null && endDate != null) {
-      // Assuming 'date' column is purely date string YYYY-MM-DD
-      // or we check created_at. The brief says date YYYY-MM-DD.
-      // String comparison works for ISO dates.
-      // But let's filter by created_at or date string range.
-      // Since date is TEXT YYYY-MM-DD
-      // whereClause += ' AND a.date BETWEEN ? AND ?';
-      // ... actually simpler to just order by date desc and filter in UI or simple query
-    }
-
-    final maps = await db.rawQuery('''
-      SELECT a.*, u.name as user_name
-      FROM ${AppConstants.tableAttendances} a
-      LEFT JOIN ${AppConstants.tableUsers} u ON a.user_id = u.id
-      WHERE $whereClause
-      ORDER BY a.date DESC, a.created_at DESC
-    ''', whereArgs);
-
-    return maps.map((e) => Attendance.fromJson(e)).toList();
   }
 
   Future<void> insertAttendance(Attendance attendance) async {
-    final db = await _appDatabase.database;
-    await db.insert(AppConstants.tableAttendances, attendance.toJson());
+    await _appwrite.tables.createRow(
+      databaseId: AppwriteConfig.databaseId,
+      tableId: AppwriteConfig.attendancesCollection,
+      rowId: attendance.id,
+      data: attendance.toJson()
+        ..remove('id')
+        ..remove('user_name'),
+    );
   }
 
   Future<void> updateAttendance(Attendance attendance) async {
-    final db = await _appDatabase.database;
-    await db.update(AppConstants.tableAttendances, attendance.toJson(), where: 'id = ?', whereArgs: [attendance.id]);
+    await _appwrite.tables.updateRow(
+      databaseId: AppwriteConfig.databaseId,
+      tableId: AppwriteConfig.attendancesCollection,
+      rowId: attendance.id,
+      data: attendance.toJson()
+        ..remove('id')
+        ..remove('user_name'),
+    );
   }
 }

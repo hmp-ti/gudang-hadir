@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/db/app_database.dart';
+import '../../../../core/services/appwrite_service.dart';
 import '../../../../core/utils/constants.dart';
 import '../data/settings_dao.dart';
 
-final settingsDaoProvider = Provider((ref) => SettingsDao(AppDatabase.instance));
+final settingsDaoProvider = Provider((ref) => SettingsDao(AppwriteService.instance));
 
 final settingsControllerProvider = StateNotifierProvider<SettingsController, AsyncValue<Map<String, String>>>((ref) {
   return SettingsController(ref.read(settingsDaoProvider));

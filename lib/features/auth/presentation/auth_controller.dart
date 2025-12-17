@@ -23,10 +23,10 @@ class AuthController extends StateNotifier<AsyncValue<User?>> {
     }
   }
 
-  Future<void> login(String username, String password) async {
+  Future<void> login(String email, String password) async {
     state = const AsyncValue.loading();
     try {
-      final user = await _authRepository.login(username, password);
+      final user = await _authRepository.login(email, password);
       if (user == null) {
         state = const AsyncValue.error('Username atau password salah', StackTrace.empty);
       } else {

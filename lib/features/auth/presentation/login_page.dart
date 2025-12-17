@@ -21,12 +21,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   void _login() {
-    final username = _userController.text;
+    final email = _userController.text;
     final password = _passController.text;
 
-    if (username.isEmpty || password.isEmpty) return;
+    if (email.isEmpty || password.isEmpty) return;
 
-    ref.read(authControllerProvider.notifier).login(username, password);
+    ref.read(authControllerProvider.notifier).login(email, password);
   }
 
   @override
@@ -64,12 +64,26 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   padding: const EdgeInsets.all(32),
                   child: Column(
                     children: [
+                      if (authState.hasError)
+                        Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red.shade200),
+                          ),
+                          child: Text(
+                            '${authState.error}',
+                            style: TextStyle(color: Colors.red.shade800, fontSize: 13),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                       TextField(
                         controller: _userController,
-                        decoration: const InputDecoration(
-                          labelText: 'Username',
-                          prefixIcon: Icon(Icons.person_outline),
-                        ),
+                        decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined)),
+                        keyboardType: TextInputType.emailAddress,
                       ),
                       const SizedBox(height: 24),
                       TextField(

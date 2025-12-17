@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
-import '../../../../core/db/app_database.dart';
+import '../../../../core/services/appwrite_service.dart';
 import '../../../auth/data/user_dao.dart';
 import '../../../auth/domain/user.dart';
 
-final userDaoProvider = Provider((ref) => UserDao(AppDatabase.instance));
+final userDaoProvider = Provider((ref) => UserDao(AppwriteService.instance));
 final userListProvider = FutureProvider.autoDispose((ref) => ref.read(userDaoProvider).getAllUsers());
 
 class UsersTab extends ConsumerStatefulWidget {
@@ -105,7 +105,7 @@ class _UsersTabState extends ConsumerState<UsersTab> {
                 child: ListTile(
                   leading: CircleAvatar(child: Text(user.role[0].toUpperCase())),
                   title: Text(user.name),
-                  subtitle: Text('@${user.username} | ${user.role}'),
+                  subtitle: Text('${user.email} | ${user.role}'),
                   trailing: Switch(
                     value: user.isActive,
                     onChanged: (val) async {

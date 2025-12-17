@@ -17,7 +17,7 @@ class ProfileTab extends ConsumerWidget {
           const Icon(Icons.account_circle, size: 100, color: Colors.grey),
           const SizedBox(height: 16),
           Text(user?.name ?? 'Nama Pengguna', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-          Text(user?.username ?? '@username', style: const TextStyle(fontSize: 16, color: Colors.grey)),
+          Text(user?.email ?? '@email', style: const TextStyle(fontSize: 16, color: Colors.grey)),
           Text(user?.role.toUpperCase() ?? 'ROLE', style: const TextStyle(fontSize: 14, color: Colors.blue)),
 
           const SizedBox(height: 48),

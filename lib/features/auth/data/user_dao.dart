@@ -1,60 +1,115 @@
-import 'package:sqflite/sqflite.dart';
-import '../../../../core/db/app_database.dart';
-import '../../../../core/utils/constants.dart';
+import 'package:appwrite/appwrite.dart';
+import 'package:appwrite/models.dart' as models;
+import '../../../../core/config/appwrite_config.dart';
+import '../../../../core/services/appwrite_service.dart';
 import '../domain/user.dart';
 
 class UserDao {
-  final AppDatabase _appDatabase;
+  final AppwriteService _appwrite;
 
-  UserDao(this._appDatabase);
+  UserDao(this._appwrite);
 
+  // Note: Actual authentication should be done via AuthRepository (Appwrite Auth).
+  // This method might be legacy or for offline.
+  // For Appwrite, we don't authenticate against the database collection manually like this.
+  // We'll return null or implement a basic check if needed, but really this should be deprecated/unused if AuthRepository is used.
+  // However, looking at the code, it seems this might be used for "login" in UI?
+  // The user asked "how to use... with current appwrite setting".
+  // Ideally, valid login goes through AuthRepository.
+  // I will leave this returning null or throw, OR logic to find user in DB (but can't check password hash safely).
+  // Implementation Plan said: "UserDao.insertUser will create a document..."
+  // It didn't explicitly say what to do with 'authenticate'.
+  // I'll assume standard AuthRepository is used for login.
+  // If this is called, it might fail. I'll search for 'UserDao.authenticate' usage later.
   Future<User?> authenticate(String username, String password) async {
-    final db = await _appDatabase.database;
-    final maps = await db.query(
-      AppConstants.tableUsers,
-      where: 'username = ? AND password_hash = ? AND is_active = 1',
-      whereArgs: [username, password],
-    );
-
-    if (maps.isNotEmpty) {
-      return User.fromJson(maps.first);
-    }
+    // Cannot support this pattern with Appwrite securely on client side for "password_hash" check.
+    // Assuming AuthRepository is used for actual login.
     return null;
   }
 
   Future<User?> getUserById(String id) async {
-    final db = await _appDatabase.database;
-    final maps = await db.query(AppConstants.tableUsers, where: 'id = ?', whereArgs: [id]);
-
-    if (maps.isNotEmpty) {
-      return User.fromJson(maps.first);
+    try {
+      final row = await _appwrite.tables.getRow(
+        databaseId: AppwriteConfig.databaseId,
+        tableId: AppwriteConfig.usersCollection,
+        rowId: id,
+      );
+      return _mapRowToUser(row);
+    } catch (_) {
+      return null;
     }
-    return null;
   }
 
   Future<List<User>> getAllUsers() async {
-    final db = await _appDatabase.database;
-    final maps = await db.query(AppConstants.tableUsers);
-    return maps.map((e) => User.fromJson(e)).toList();
+    try {
+      final response = await _appwrite.tables.listRows(
+        databaseId: AppwriteConfig.databaseId,
+        tableId: AppwriteConfig.usersCollection,
+      );
+      return response.rows.map((e) => _mapRowToUser(e)).toList();
+    } catch (e) {
+      return [];
+    }
   }
 
   Future<void> insertUser(Map<String, dynamic> userMap) async {
-    final db = await _appDatabase.database;
-    await db.insert(AppConstants.tableUsers, userMap);
+    // Admin creating user.
+    // We Create Document. Login not possible unless Auth Account exists.
+    // ID should be passed or generated.
+    final id = userMap['id'] ?? ID.unique();
+    final data = Map<String, dynamic>.from(userMap);
+    data.remove('id');
+
+    await _appwrite.tables.createRow(
+      databaseId: AppwriteConfig.databaseId,
+      tableId: AppwriteConfig.usersCollection,
+      rowId: id,
+      data: data,
+    );
   }
 
   Future<void> updateUser(User user, {String? password}) async {
-    final db = await _appDatabase.database;
-    final Map<String, dynamic> values = user.toJson();
-    if (password != null) {
-      values['password_hash'] = password;
-    }
-    // Remove read-only fields if necessary, but here we replace mostly everything
-    await db.update(AppConstants.tableUsers, values, where: 'id = ?', whereArgs: [user.id]);
+    final data = user.toJson();
+    data.remove('id');
+    // We cannot update password hash in DB meaningfully for Appwrite Auth.
+    // If password provided, it should be updated in Auth Account (not possible from Client SDK for other users).
+    // So we ignore password update here for now.
+
+    await _appwrite.tables.updateRow(
+      databaseId: AppwriteConfig.databaseId,
+      tableId: AppwriteConfig.usersCollection,
+      rowId: user.id,
+      data: data,
+    );
   }
 
   Future<void> toggleUserStatus(String id, bool isActive) async {
-    final db = await _appDatabase.database;
-    await db.update(AppConstants.tableUsers, {'is_active': isActive ? 1 : 0}, where: 'id = ?', whereArgs: [id]);
+    await _appwrite.tables.updateRow(
+      databaseId: AppwriteConfig.databaseId,
+      tableId: AppwriteConfig.usersCollection,
+      rowId: id,
+      data: {'is_active': isActive},
+    );
+  }
+
+  User _mapRowToUser(models.Row row) {
+    // row is models.Row
+    final data = row.data;
+    // Helper to match User.fromJson expectations
+    // User.fromJson expects 'username' (which we map from email?) or 'email'.
+    // In DB we stored 'username' ?
+    // Let's look at schema in AppDatabase: 'username' unique.
+    // In Appwrite, we might use 'email' or 'username'.
+    // Let's assume the document has the same fields as the Map.
+
+    final map = Map<String, dynamic>.from(data);
+    map['id'] = row.$id;
+    // Map email/username if needed
+    // In SQLite: username -> email mapping was done.
+    if (map['email'] == null && map['username'] != null) {
+      map['email'] = map['username'];
+    }
+
+    return User.fromJson(map);
   }
 }

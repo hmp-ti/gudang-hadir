@@ -1,44 +1,98 @@
-import 'package:sqflite/sqflite.dart';
-import '../../../../core/db/app_database.dart';
-import '../../../../core/utils/constants.dart';
+import 'package:appwrite/appwrite.dart';
+import '../../../../core/config/appwrite_config.dart';
+import '../../../../core/services/appwrite_service.dart';
+
 import '../domain/transaction.dart';
 
 class TransactionDao {
-  final AppDatabase _appDatabase;
+  final AppwriteService _appwrite;
 
-  TransactionDao(this._appDatabase);
+  TransactionDao(this._appwrite);
 
   Future<List<WarehouseTransaction>> getAllTransactions({DateTime? startDate, DateTime? endDate, String? type}) async {
-    final db = await _appDatabase.database;
+    try {
+      List<String> queries = [Query.orderDesc('created_at')];
 
-    String whereClause = '1=1';
-    List<dynamic> whereArgs = [];
+      if (type != null) {
+        queries.add(Query.equal('type', type));
+      }
+      if (startDate != null && endDate != null) {
+        queries.add(Query.between('created_at', startDate.toIso8601String(), endDate.toIso8601String()));
+      }
 
-    if (type != null) {
-      whereClause += ' AND t.type = ?';
-      whereArgs.add(type);
+      final response = await _appwrite.tables.listRows(
+        databaseId: AppwriteConfig.databaseId,
+        tableId: AppwriteConfig.transactionsCollection,
+        queries: queries,
+      );
+
+      final transactions = <WarehouseTransaction>[];
+
+      for (var row in response.rows) {
+        final data = row.data;
+        String? itemName;
+        String? userName;
+
+        // Fetch related Item Name
+        // Optimization: In a real app, cache these or store name in transaction doc (denormalization)
+        // For now, we fetch individually (N+1 prob but okay for small scale/mvp)
+        if (data['item_id'] != null) {
+          try {
+            final itemRow = await _appwrite.tables.getRow(
+              databaseId: AppwriteConfig.databaseId,
+              tableId: AppwriteConfig.itemsCollection,
+              rowId: data['item_id'],
+            );
+            itemName = itemRow.data['name'];
+          } catch (_) {}
+        }
+
+        // Fetch user name
+        if (data['created_by'] != null) {
+          try {
+            final userRow = await _appwrite.tables.getRow(
+              databaseId: AppwriteConfig.databaseId,
+              tableId: AppwriteConfig.usersCollection,
+              rowId: data['created_by'],
+            );
+            userName = userRow.data['name'];
+          } catch (_) {}
+        }
+
+        transactions.add(
+          WarehouseTransaction(
+            id: row.$id,
+            itemId: data['item_id'] ?? '',
+            type: data['type'] ?? '',
+            qty: data['qty'] ?? 0,
+            note: data['note'] ?? '',
+            createdAt: DateTime.tryParse(data['created_at'] ?? '') ?? DateTime.now(),
+            createdBy: data['created_by'] ?? '',
+            itemName: itemName,
+            userName: userName,
+          ),
+        );
+      }
+
+      return transactions;
+    } catch (e) {
+      return [];
     }
-    if (startDate != null && endDate != null) {
-      whereClause += ' AND t.created_at BETWEEN ? AND ?';
-      whereArgs.add(startDate.toIso8601String());
-      whereArgs.add(endDate.toIso8601String());
-    }
-
-    // Join with Items and Users to get names
-    final maps = await db.rawQuery('''
-      SELECT t.*, i.name as item_name, u.name as user_name
-      FROM ${AppConstants.tableTransactions} t
-      LEFT JOIN ${AppConstants.tableItems} i ON t.item_id = i.id
-      LEFT JOIN ${AppConstants.tableUsers} u ON t.created_by = u.id
-      WHERE $whereClause
-      ORDER BY t.created_at DESC
-    ''', whereArgs);
-
-    return maps.map((e) => WarehouseTransaction.fromJson(e)).toList();
   }
 
   Future<void> insertTransaction(WarehouseTransaction transaction) async {
-    final db = await _appDatabase.database;
-    await db.insert(AppConstants.tableTransactions, transaction.toJson());
+    await _appwrite.tables.createRow(
+      databaseId: AppwriteConfig.databaseId,
+      tableId: AppwriteConfig.transactionsCollection,
+      rowId: transaction.id,
+      data: {
+        'item_id': transaction.itemId,
+        'type': transaction.type,
+        'qty': transaction.qty,
+        'note': transaction.note,
+        'created_at': transaction.createdAt.toIso8601String(),
+        'created_by': transaction.createdBy,
+      },
+    );
   }
 }

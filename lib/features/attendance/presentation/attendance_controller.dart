@@ -3,15 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/db/app_database.dart';
+import '../../../../core/services/appwrite_service.dart';
 import '../../../../core/utils/constants.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../settings/data/settings_dao.dart';
 import '../data/attendance_dao.dart';
 import '../domain/attendance.dart';
 
-final attendanceDaoProvider = Provider((ref) => AttendanceDao(AppDatabase.instance));
-final settingsDaoProvider = Provider((ref) => SettingsDao(AppDatabase.instance));
+final attendanceDaoProvider = Provider((ref) => AttendanceDao(AppwriteService.instance));
+final settingsDaoProvider = Provider((ref) => SettingsDao(AppwriteService.instance));
 
 final attendanceControllerProvider = StateNotifierProvider<AttendanceController, AsyncValue<Attendance?>>((ref) {
   return AttendanceController(

@@ -6,8 +6,11 @@ class Item {
   final String unit;
   final int stock;
   final int minStock;
-  final String rackLocation; // 'rack_location' in DB
+  final String rackLocation;
   final String description;
+  final double price;
+  final bool discontinued;
+  final String manufacturer;
   final DateTime updatedAt;
 
   Item({
@@ -20,21 +23,34 @@ class Item {
     required this.minStock,
     required this.rackLocation,
     required this.description,
+    this.price = 0.0,
+    this.discontinued = false,
+    this.manufacturer = '',
     required this.updatedAt,
   });
 
   factory Item.fromJson(Map<String, dynamic> json) {
+    // Helper to safely get value checking both camelCase and snake_case
+    T? getVal<T>(String camel, String snake) {
+      if (json.containsKey(camel) && json[camel] != null) return json[camel] as T?;
+      if (json.containsKey(snake) && json[snake] != null) return json[snake] as T?;
+      return null;
+    }
+
     return Item(
-      id: json['id'],
-      code: json['code'],
-      name: json['name'],
-      category: json['category'],
-      unit: json['unit'],
-      stock: json['stock'],
-      minStock: json['min_stock'],
-      rackLocation: json['rack_location'],
-      description: json['description'],
-      updatedAt: DateTime.parse(json['updated_at']),
+      id: json['id'] ?? json['\$id'] ?? '', // Support Appwrite $id
+      code: getVal<String>('code', 'code') ?? '',
+      name: getVal<String>('name', 'name') ?? '',
+      category: getVal<String>('category', 'category') ?? '',
+      unit: getVal<String>('unit', 'unit') ?? '',
+      stock: getVal<int>('stock', 'stock') ?? 0,
+      minStock: getVal<int>('minStock', 'min_stock') ?? 0,
+      rackLocation: getVal<String>('rackLocation', 'rack_location') ?? '',
+      description: getVal<String>('description', 'description') ?? '',
+      price: (getVal<num>('price', 'price') ?? 0).toDouble(),
+      discontinued: getVal<bool>('discontinued', 'discontinued') ?? false,
+      manufacturer: getVal<String>('manufacturer', 'manufacturer') ?? '',
+      updatedAt: DateTime.tryParse(getVal<String>('updatedAt', 'updated_at') ?? '') ?? DateTime.now(),
     );
   }
 
@@ -49,6 +65,9 @@ class Item {
       'min_stock': minStock,
       'rack_location': rackLocation,
       'description': description,
+      'price': price,
+      'discontinued': discontinued,
+      'manufacturer': manufacturer,
       'updated_at': updatedAt.toIso8601String(),
     };
   }

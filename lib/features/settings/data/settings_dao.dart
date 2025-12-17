@@ -1,36 +1,55 @@
-import 'package:sqflite/sqflite.dart';
-import '../../../core/db/app_database.dart';
-import '../../../core/utils/constants.dart';
+import '../../../core/config/appwrite_config.dart';
+import '../../../core/services/appwrite_service.dart';
 
 class SettingsDao {
-  final AppDatabase _appDatabase;
+  final AppwriteService _appwrite;
+  // Assuming a collection for settings exists or we use one.
+  // Using 'app_settings' as collection ID.
+  static const String tableId = 'app_settings'; // renamed for consistency
 
-  SettingsDao(this._appDatabase);
+  SettingsDao(this._appwrite);
 
   Future<String?> getSetting(String key) async {
-    final db = await _appDatabase.database;
-    final maps = await db.query(AppConstants.tableAppSettings, where: 'key = ?', whereArgs: [key]);
-    if (maps.isNotEmpty) {
-      return maps.first['value'] as String?;
+    try {
+      // Try to get document with ID = key
+      final row = await _appwrite.tables.getRow(databaseId: AppwriteConfig.databaseId, tableId: tableId, rowId: key);
+      return row.data['value'] as String?;
+    } catch (_) {
+      return null;
     }
-    return null;
   }
 
   Future<void> setSetting(String key, String value) async {
-    final db = await _appDatabase.database;
-    await db.insert(AppConstants.tableAppSettings, {
-      'key': key,
-      'value': value,
-    }, conflictAlgorithm: ConflictAlgorithm.replace);
+    try {
+      // Try to update first
+      await _appwrite.tables.updateRow(
+        databaseId: AppwriteConfig.databaseId,
+        tableId: tableId,
+        rowId: key,
+        data: {'value': value},
+      );
+    } catch (e) {
+      // If fails (e.g. not found), create
+      await _appwrite.tables.createRow(
+        databaseId: AppwriteConfig.databaseId,
+        tableId: tableId,
+        rowId: key,
+        data: {'value': value},
+      );
+    }
   }
 
   Future<Map<String, String>> getAllSettings() async {
-    final db = await _appDatabase.database;
-    final maps = await db.query(AppConstants.tableAppSettings);
-    final Map<String, String> settings = {};
-    for (var row in maps) {
-      settings[row['key'] as String] = row['value'] as String;
+    try {
+      final response = await _appwrite.tables.listRows(databaseId: AppwriteConfig.databaseId, tableId: tableId);
+      final Map<String, String> settings = {};
+      for (var row in response.rows) {
+        // Assuming doc ID is key
+        settings[row.$id] = row.data['value'] as String? ?? '';
+      }
+      return settings;
+    } catch (e) {
+      return {};
     }
-    return settings;
   }
 }

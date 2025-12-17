@@ -20,9 +20,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/employee', builder: (context, state) => const EmployeeMainPage()),
     ],
     redirect: (context, state) {
-      if (authState.isLoading) return '/splash';
+      if (authState.isLoading) {
+        if (state.matchedLocation == '/login') return null;
+        return '/splash';
+      }
 
-      final isAuthenticated = authState.value != null;
+      final isAuthenticated = authState.valueOrNull != null;
       final isSplash = state.matchedLocation == '/splash';
       final isLogin = state.matchedLocation == '/login';
 
@@ -32,7 +35,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Authenticated
       if (isSplash || isLogin) {
-        final user = authState.value!;
+        final user = authState.valueOrNull!;
         if (user.role == 'admin') {
           return '/admin';
         } else {

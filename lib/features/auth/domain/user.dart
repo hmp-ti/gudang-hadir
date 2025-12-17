@@ -1,7 +1,7 @@
 class User {
   final String id;
   final String name;
-  final String username;
+  final String email;
   final String role; // 'admin' or 'karyawan'
   final bool isActive;
   final DateTime createdAt;
@@ -9,7 +9,7 @@ class User {
   User({
     required this.id,
     required this.name,
-    required this.username,
+    required this.email,
     required this.role,
     required this.isActive,
     required this.createdAt,
@@ -17,12 +17,12 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'],
+      id: json['\$id'] ?? json['id'], // Appwrite uses $id
       name: json['name'],
-      username: json['username'],
-      role: json['role'],
-      isActive: (json['is_active'] as int) == 1,
-      createdAt: DateTime.parse(json['created_at']),
+      email: json['email'],
+      role: json['role'] ?? 'karyawan',
+      isActive: json['is_active'] == true || json['is_active'] == 1,
+      createdAt: DateTime.tryParse(json['\$createdAt'] ?? json['created_at'] ?? '') ?? DateTime.now(),
     );
   }
 
@@ -30,9 +30,9 @@ class User {
     return {
       'id': id,
       'name': name,
-      'username': username,
+      'email': email,
       'role': role,
-      'is_active': isActive ? 1 : 0,
+      'is_active': isActive,
       'created_at': createdAt.toIso8601String(),
     };
   }
