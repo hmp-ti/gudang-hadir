@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gudang_hadir/features/auth/presentation/auth_controller.dart';
 import '../../../warehouse/presentation/warehouse_controller.dart'; // Reuse ItemDao
 
 // A generic dashboard provider could fetch various counts
@@ -77,11 +78,14 @@ class AdminDashboardTab extends ConsumerWidget {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Buka Tab Gudang')));
                   }),
                   const SizedBox(width: 16),
-                  _buildActionButton(context, 'Scan\nMasuk', Icons.qr_code_scanner, Colors.purple, () {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(const SnackBar(content: Text('Fitur Scan Admin (Segera)')));
-                  }),
+                  if (ref.watch(authControllerProvider).valueOrNull?.role != 'owner')
+                    _buildActionButton(context, 'Scan\nMasuk', Icons.qr_code_scanner, Colors.purple, () {
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(const SnackBar(content: Text('Fitur Scan Admin (Segera)')));
+                    })
+                  else
+                    const Spacer(), // Fill space if button hidden
                 ],
               ),
             ],

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/services/appwrite_service.dart';
 import '../../../auth/data/user_dao.dart';
+import '../../../auth/presentation/auth_controller.dart';
 // import '../../../auth/domain/user.dart';
 
 final userDaoProvider = Provider((ref) => UserDao(AppwriteService.instance));
@@ -99,12 +100,23 @@ class _UsersTabState extends ConsumerState<UsersTab> {
       floatingActionButton: FloatingActionButton(onPressed: _showAddUserDialog, child: const Icon(Icons.add)),
       body: usersAsync.when(
         data: (users) {
+          final currentUser = ref.watch(authControllerProvider).valueOrNull;
+          var filteredUsers = users;
+
+          if (currentUser?.role == 'admin') {
+            filteredUsers = users.where((u) => u.role == 'karyawan').toList();
+          }
+
+          if (filteredUsers.isEmpty) {
+            return const Center(child: Text('Tidak ada user.'));
+          }
+
           return ListView.separated(
             padding: const EdgeInsets.all(16),
-            itemCount: users.length,
+            itemCount: filteredUsers.length,
             separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
-              final user = users[index];
+              final user = filteredUsers[index];
               return Card(
                 child: ListTile(
                   leading: CircleAvatar(child: Text(user.role[0].toUpperCase())),
@@ -113,6 +125,23 @@ class _UsersTabState extends ConsumerState<UsersTab> {
                   trailing: Switch(
                     value: user.isActive,
                     onChanged: (val) async {
+                      final currentUser = ref.read(authControllerProvider).valueOrNull;
+                      if (currentUser == null) return;
+
+                      if (currentUser.role == 'admin') {
+                        // Admin cannot touch Owner or other Admins
+                        if (user.role == 'admin' || user.role == 'owner') {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Admin tidak dapat mengubah akun Admin/Owner.'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
+                      }
+
+                      // If Owner, allowed to do anything (or if Admin touching employee)
                       await ref.read(userDaoProvider).toggleUserStatus(user.id, val);
                       return ref.refresh(userListProvider);
                     },

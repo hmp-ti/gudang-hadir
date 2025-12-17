@@ -62,13 +62,13 @@ class Item {
       'category': category,
       'unit': unit,
       'stock': stock,
-      'min_stock': minStock,
-      'rack_location': rackLocation,
+      'minStock': minStock,
+      'rackLocation': rackLocation,
       'description': description,
       'price': price,
       'discontinued': discontinued,
       'manufacturer': manufacturer,
-      'updated_at': updatedAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
     };
   }
 
@@ -82,6 +82,9 @@ class Item {
     int? minStock,
     String? rackLocation,
     String? description,
+    double? price,
+    bool? discontinued,
+    String? manufacturer,
     DateTime? updatedAt,
   }) {
     return Item(
@@ -94,6 +97,9 @@ class Item {
       minStock: minStock ?? this.minStock,
       rackLocation: rackLocation ?? this.rackLocation,
       description: description ?? this.description,
+      price: price ?? this.price,
+      discontinued: discontinued ?? this.discontinued,
+      manufacturer: manufacturer ?? this.manufacturer,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }

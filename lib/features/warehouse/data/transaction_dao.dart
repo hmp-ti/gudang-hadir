@@ -11,13 +11,13 @@ class TransactionDao {
 
   Future<List<WarehouseTransaction>> getAllTransactions({DateTime? startDate, DateTime? endDate, String? type}) async {
     try {
-      List<String> queries = [Query.orderDesc('created_at')];
+      List<String> queries = [Query.orderDesc('createdAt')];
 
       if (type != null) {
         queries.add(Query.equal('type', type));
       }
       if (startDate != null && endDate != null) {
-        queries.add(Query.between('created_at', startDate.toIso8601String(), endDate.toIso8601String()));
+        queries.add(Query.between('createdAt', startDate.toIso8601String(), endDate.toIso8601String()));
       }
 
       final response = await _appwrite.tables.listRows(
@@ -36,24 +36,24 @@ class TransactionDao {
         // Fetch related Item Name
         // Optimization: In a real app, cache these or store name in transaction doc (denormalization)
         // For now, we fetch individually (N+1 prob but okay for small scale/mvp)
-        if (data['item_id'] != null) {
+        if (data['itemId'] != null) {
           try {
             final itemRow = await _appwrite.tables.getRow(
               databaseId: AppwriteConfig.databaseId,
               tableId: AppwriteConfig.itemsCollection,
-              rowId: data['item_id'],
+              rowId: data['itemId'],
             );
             itemName = itemRow.data['name'];
           } catch (_) {}
         }
 
         // Fetch user name
-        if (data['created_by'] != null) {
+        if (data['createdBy'] != null) {
           try {
             final userRow = await _appwrite.tables.getRow(
               databaseId: AppwriteConfig.databaseId,
               tableId: AppwriteConfig.usersCollection,
-              rowId: data['created_by'],
+              rowId: data['createdBy'],
             );
             userName = userRow.data['name'];
           } catch (_) {}
@@ -62,12 +62,12 @@ class TransactionDao {
         transactions.add(
           WarehouseTransaction(
             id: row.$id,
-            itemId: data['item_id'] ?? '',
+            itemId: data['itemId'] ?? '',
             type: data['type'] ?? '',
             qty: data['qty'] ?? 0,
             note: data['note'] ?? '',
-            createdAt: DateTime.tryParse(data['created_at'] ?? '') ?? DateTime.now(),
-            createdBy: data['created_by'] ?? '',
+            createdAt: DateTime.tryParse(data['createdAt'] ?? '') ?? DateTime.now(),
+            createdBy: data['createdBy'] ?? '',
             itemName: itemName,
             userName: userName,
           ),
@@ -86,12 +86,12 @@ class TransactionDao {
       tableId: AppwriteConfig.transactionsCollection,
       rowId: transaction.id,
       data: {
-        'item_id': transaction.itemId,
+        'itemId': transaction.itemId,
         'type': transaction.type,
         'qty': transaction.qty,
         'note': transaction.note,
-        'created_at': transaction.createdAt.toIso8601String(),
-        'created_by': transaction.createdBy,
+        'createdAt': transaction.createdAt.toIso8601String(),
+        'createdBy': transaction.createdBy,
       },
     );
   }

@@ -15,6 +15,11 @@ class AdminLeaveListTab extends ConsumerWidget {
     ref.listen(leaveControllerProvider, (prev, next) {
       if (next.hasError) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${next.error}')));
+      } else if (!next.isLoading && !next.hasError && prev?.isLoading == true) {
+        // value is null because repository returns void/null on success, but we check if it finished loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Berhasil disetujui & PDF dibuat!'), backgroundColor: Colors.green),
+        );
       }
     });
 

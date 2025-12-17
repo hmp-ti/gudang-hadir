@@ -63,13 +63,13 @@ class ItemDao {
         'category': item.category,
         'unit': item.unit,
         'stock': item.stock,
-        'min_stock': item.minStock,
-        'rack_location': item.rackLocation,
+        'minStock': item.minStock,
+        'rackLocation': item.rackLocation,
         'description': item.description,
         'price': item.price,
         'discontinued': item.discontinued,
         'manufacturer': item.manufacturer,
-        'updated_at': item.updatedAt.toIso8601String(),
+        'updatedAt': item.updatedAt.toIso8601String(),
       },
     );
   }
@@ -85,13 +85,13 @@ class ItemDao {
         'category': item.category,
         'unit': item.unit,
         'stock': item.stock,
-        'min_stock': item.minStock,
-        'rack_location': item.rackLocation,
+        'minStock': item.minStock,
+        'rackLocation': item.rackLocation,
         'description': item.description,
         'price': item.price,
         'discontinued': item.discontinued,
         'manufacturer': item.manufacturer,
-        'updated_at': item.updatedAt.toIso8601String(),
+        'updatedAt': item.updatedAt.toIso8601String(),
       },
     );
   }
@@ -109,7 +109,7 @@ class ItemDao {
       databaseId: AppwriteConfig.databaseId,
       tableId: AppwriteConfig.itemsCollection,
       rowId: itemId,
-      data: {'stock': newStock, 'updated_at': DateTime.now().toIso8601String()},
+      data: {'stock': newStock, 'updatedAt': DateTime.now().toIso8601String()},
     );
   }
 

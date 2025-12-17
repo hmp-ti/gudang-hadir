@@ -40,6 +40,9 @@ class WarehouseController extends StateNotifier<AsyncValue<List<Item>>> {
     int minStock,
     String rack,
     String desc,
+    double price,
+    String manufacturer,
+    bool discontinued,
   ) async {
     try {
       final newItem = Item(
@@ -52,6 +55,9 @@ class WarehouseController extends StateNotifier<AsyncValue<List<Item>>> {
         minStock: minStock,
         rackLocation: rack,
         description: desc,
+        price: price,
+        manufacturer: manufacturer,
+        discontinued: discontinued,
         updatedAt: DateTime.now(),
       );
       await _itemDao.insertItem(newItem);

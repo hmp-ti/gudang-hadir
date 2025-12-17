@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../domain/item.dart';
 import 'item_form_page.dart';
 import 'transaction_form_page.dart';
@@ -28,7 +29,20 @@ class ItemDetailPage extends StatelessWidget {
           children: [
             _buildDetailRow('Kode', item.code),
             _buildDetailRow('Kategori', item.category),
+            _buildDetailRow('Manufacturer', item.manufacturer.isNotEmpty ? item.manufacturer : '-'),
             _buildDetailRow('Rak', item.rackLocation),
+            _buildDetailRow(
+              'Harga',
+              CurrencyFormatter.format(item.price),
+              isValueBold: true,
+              valueColor: Colors.green.shade700,
+            ),
+            _buildDetailRow(
+              'Status',
+              item.discontinued ? 'Non-Aktif (Discontinued)' : 'Aktif',
+              isValueBold: true,
+              valueColor: item.discontinued ? Colors.red : Colors.blue,
+            ),
             const Divider(),
             _buildDetailRow(
               'Stok Saat Ini',

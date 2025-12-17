@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../domain/item.dart';
 import '../item_detail_page.dart';
 import '../item_form_page.dart';
@@ -77,10 +78,32 @@ class _ItemsTabState extends ConsumerState<ItemsTab> {
 
   Widget _buildItemCard(BuildContext context, Item item) {
     final isLowStock = item.stock <= item.minStock;
+    final isDiscontinued = item.discontinued;
+
     return Card(
+      color: isDiscontinued ? Colors.grey.shade200 : null,
       child: ListTile(
-        title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text('${item.code} | Rak: ${item.rackLocation}'),
+        title: Text(
+          item.name,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            decoration: isDiscontinued ? TextDecoration.lineThrough : null,
+            color: isDiscontinued ? Colors.grey : Colors.black,
+          ),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('${item.code} | Rak: ${item.rackLocation}'),
+            const SizedBox(height: 4),
+            Text(
+              CurrencyFormatter.format(item.price),
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green.shade700),
+            ),
+            if (item.manufacturer.isNotEmpty)
+              Text(item.manufacturer, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          ],
+        ),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -90,10 +113,16 @@ class _ItemsTabState extends ConsumerState<ItemsTab> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
-                color: isLowStock ? Colors.red : Colors.black,
+                color: isLowStock && !isDiscontinued ? Colors.red : Colors.black,
               ),
             ),
-            if (isLowStock) const Text('Low Stock', style: TextStyle(color: Colors.red, fontSize: 10)),
+            if (isLowStock && !isDiscontinued)
+              const Text('Low Stock', style: TextStyle(color: Colors.red, fontSize: 10)),
+            if (isDiscontinued)
+              const Text(
+                'Non-Aktif',
+                style: TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold),
+              ),
           ],
         ),
         onTap: () {
