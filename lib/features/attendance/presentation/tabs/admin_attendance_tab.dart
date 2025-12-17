@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../data/attendance_dao.dart';
 import '../../presentation/attendance_controller.dart'; // To reuse DAO provider
 
 // Provider to fetch ALL attendance for today
 final adminAttendanceTodayProvider = FutureProvider.autoDispose((ref) async {
   final dao = ref.read(attendanceDaoProvider);
-  final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+  // final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
   // Reuse getHistory but without userId filter to get everyone
   // Wait, getHistory implementation in Step 37 handled userId optional.
   return dao.getHistory(); // We might need to filter by date in DAO or here.
@@ -26,8 +25,8 @@ class AdminAttendanceTab extends ConsumerWidget {
 
     return Scaffold(
       body: RefreshIndicator(
-        onRefresh: () async {
-          await ref.refresh(adminAttendanceTodayProvider.future);
+        onRefresh: () {
+          return ref.refresh(adminAttendanceTodayProvider.future);
         },
         child: listAsync.when(
           data: (list) {
@@ -48,7 +47,7 @@ class AdminAttendanceTab extends ConsumerWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
               itemCount: todayList.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final item = todayList[index];
                 return Card(

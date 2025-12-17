@@ -23,8 +23,8 @@ class AdminDashboardTab extends ConsumerWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5), // Light grey background
       body: RefreshIndicator(
-        onRefresh: () async {
-          await ref.refresh(dashboardStatsProvider.future);
+        onRefresh: () {
+          return ref.refresh(dashboardStatsProvider.future);
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -97,7 +97,7 @@ class AdminDashboardTab extends ConsumerWidget {
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: color.withOpacity(0.4), blurRadius: 8, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 4))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,7 +128,7 @@ class AdminDashboardTab extends ConsumerWidget {
           ),
           child: Column(
             children: [
-              CircleAvatar(backgroundColor: color.withOpacity(0.1), foregroundColor: color, child: Icon(icon)),
+              CircleAvatar(backgroundColor: color.withValues(alpha: 0.1), foregroundColor: color, child: Icon(icon)),
               const SizedBox(height: 8),
               Text(
                 label,

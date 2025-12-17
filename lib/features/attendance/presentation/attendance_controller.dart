@@ -77,7 +77,9 @@ class AttendanceController extends StateNotifier<AsyncValue<Attendance?>> {
         final whLng = double.parse(lngStr);
         final radius = double.parse(await _settingsDao.getSetting(AppConstants.keyAttendanceRadius) ?? '100');
 
-        final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+        final pos = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+        );
 
         saveLat = pos.latitude;
         saveLng = pos.longitude;

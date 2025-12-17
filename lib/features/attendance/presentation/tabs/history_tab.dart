@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../auth/data/auth_repository.dart';
-import '../../data/attendance_dao.dart';
 import '../attendance_controller.dart';
 
 // Use FutureProvider for history list
@@ -25,7 +24,7 @@ class HistoryTab extends ConsumerWidget {
           // Re-fetch history
           // ref.refresh returns the result of the provider. For FutureProvider, it's the future.
           // Wait for it to complete.
-          await ref.refresh(attendanceHistoryProvider.future);
+          return ref.refresh(attendanceHistoryProvider.future);
         },
         child: historyAsync.when(
           data: (list) {
@@ -43,7 +42,7 @@ class HistoryTab extends ConsumerWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
               itemCount: list.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final item = list[index];
                 final dateStr = DateFormat('EEEE, d MMM yyyy', 'id_ID').format(DateTime.parse(item.date));

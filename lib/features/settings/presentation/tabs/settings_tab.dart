@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../../../core/utils/constants.dart';
-import '../../../../core/utils/validators.dart';
+// import '../../../../core/utils/validators.dart';
 import '../settings_controller.dart';
 import '../../../auth/presentation/auth_controller.dart';
 
@@ -145,31 +145,37 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        if (context.mounted)
+        if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Izin lokasi ditolak')));
+        }
         return;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      if (context.mounted)
+      if (context.mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Izin lokasi permanen ditolak. Cek setelan HP.')));
+      }
       return;
     }
 
     // Get Location
     try {
-      if (context.mounted)
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Mendaptkan lokasi...')));
+      }
 
-      final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+      );
 
       await ref.read(settingsControllerProvider.notifier).setWarehouseLocation(position.latitude, position.longitude);
 
-      if (context.mounted)
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lokasi Gudang Diperbarui')));
+      }
     } catch (e) {
       if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     }

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/services/appwrite_service.dart';
 import '../../../auth/data/user_dao.dart';
-import '../../../auth/domain/user.dart';
+// import '../../../auth/domain/user.dart';
 
 final userDaoProvider = Provider((ref) => UserDao(AppwriteService.instance));
 final userListProvider = FutureProvider.autoDispose((ref) => ref.read(userDaoProvider).getAllUsers());
@@ -71,10 +71,14 @@ class _UsersTabState extends ConsumerState<UsersTab> {
                         'created_at': DateTime.now().toIso8601String(),
                       };
                       await ref.read(userDaoProvider).insertUser(newUser);
-                      if (mounted) Navigator.pop(context);
-                      ref.refresh(userListProvider);
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        return ref.refresh(userListProvider);
+                      }
                     } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                      }
                     }
                   },
                   child: const Text('Simpan'),
@@ -110,7 +114,7 @@ class _UsersTabState extends ConsumerState<UsersTab> {
                     value: user.isActive,
                     onChanged: (val) async {
                       await ref.read(userDaoProvider).toggleUserStatus(user.id, val);
-                      ref.refresh(userListProvider);
+                      return ref.refresh(userListProvider);
                     },
                   ),
                 ),
