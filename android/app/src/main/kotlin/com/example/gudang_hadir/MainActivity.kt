@@ -1,4 +1,4 @@
-package com.example.gudang_hadir
+package com.hmpti.gudang_hadir
 
 import io.flutter.embedding.android.FlutterActivity
 
