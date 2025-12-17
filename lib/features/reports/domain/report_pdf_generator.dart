@@ -164,10 +164,11 @@ class ReportPdfGenerator {
         // Now leaves is list of Map {'leave': Leave, 'name': String}
 
         return pw.TableHelper.fromTextArray(
-          headers: ['Name', 'Reason', 'Start', 'End', 'Status'],
+          headers: ['Name', 'Reason', 'Start', 'End', 'Status', 'Prior Att.'],
           data: leaves.map((e) {
             final leave = e['leave'] as Leave;
             final name = e['name'] as String;
+            final prev = e['prevWorkDays'] ?? 0;
 
             // Safe date formatting
             String start = leave.startDate;
@@ -177,7 +178,7 @@ class ReportPdfGenerator {
               end = dateFormatter.format(DateTime.parse(leave.endDate));
             } catch (_) {}
 
-            return [name, leave.reason, start, end, leave.status];
+            return [name, leave.reason, start, end, leave.status, '$prev days'];
           }).toList(),
           headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
           cellStyle: const pw.TextStyle(fontSize: 9),

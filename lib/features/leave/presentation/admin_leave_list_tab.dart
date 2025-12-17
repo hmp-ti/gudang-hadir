@@ -6,6 +6,7 @@ import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'leave_controller.dart';
 import '../domain/leave.dart';
+import '../../attendance/data/attendance_dao.dart';
 
 class AdminLeaveListTab extends ConsumerStatefulWidget {
   const AdminLeaveListTab({super.key});
@@ -65,10 +66,11 @@ class _AdminLeaveListState extends ConsumerState<AdminLeaveListTab> {
       if (next.hasError) {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${next.error}')));
       } else if (!next.isLoading && !next.hasError && prev?.isLoading == true) {
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(const SnackBar(content: Text('Berhasil!'), backgroundColor: Colors.green));
+        }
       }
     });
 
@@ -162,7 +164,7 @@ class _LeaveList extends ConsumerWidget {
           return ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: sorted.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final item = sorted[index];
               final start = DateFormat('d MMM').format(DateTime.parse(item.startDate));
@@ -185,7 +187,7 @@ class _LeaveList extends ConsumerWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.1),
+                              color: statusColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(color: statusColor),
                             ),
@@ -198,6 +200,8 @@ class _LeaveList extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       Text('${item.reason} ($start - $end)'),
+                      const SizedBox(height: 8),
+                      _WorkDaysBadge(userId: item.userId, date: item.startDate),
                       const SizedBox(height: 16),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
@@ -265,6 +269,37 @@ class _LeaveList extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(child: Text('Error: $e')),
       ),
+    );
+  }
+}
+
+class _WorkDaysBadge extends ConsumerWidget {
+  final String userId;
+  final String date;
+
+  const _WorkDaysBadge({required this.userId, required this.date});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final dao = ref.watch(attendanceDaoProvider);
+    return FutureBuilder<int>(
+      future: dao.getAttendanceCountBefore(userId, date),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const SizedBox.shrink();
+        final count = snapshot.data!;
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(4)),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.work_history, size: 14, color: Colors.blue),
+              const SizedBox(width: 4),
+              Text('Hadir sebelum cuti: $count hari', style: const TextStyle(fontSize: 12, color: Colors.blue)),
+            ],
+          ),
+        );
+      },
     );
   }
 }

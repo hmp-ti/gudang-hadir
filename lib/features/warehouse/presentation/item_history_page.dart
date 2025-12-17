@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:gudang_hadir/features/warehouse/data/item_dao.dart';
+
 import 'package:gudang_hadir/features/warehouse/data/transaction_dao.dart';
 import 'package:gudang_hadir/features/warehouse/domain/item.dart';
 import 'package:gudang_hadir/features/warehouse/domain/transaction.dart';
@@ -110,7 +110,7 @@ class _ItemHistoryPageState extends ConsumerState<ItemHistoryPage> {
           : ListView.separated(
               padding: const EdgeInsets.all(16),
               itemCount: _transactions.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              separatorBuilder: (context, index) => const SizedBox(height: 8),
               itemBuilder: (context, index) {
                 final t = _transactions[index];
                 final isMasuk = t.type.toLowerCase() == 'masuk';

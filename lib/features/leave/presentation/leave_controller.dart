@@ -56,7 +56,7 @@ class LeaveController extends StateNotifier<AsyncValue<void>> {
 
       await _dao.createLeave(leave);
       state = const AsyncValue.data(null);
-      return _ref.refresh(myLeavesProvider.future);
+      _ref.invalidate(myLeavesProvider);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -84,8 +84,8 @@ class LeaveController extends StateNotifier<AsyncValue<void>> {
 
       state = const AsyncValue.data(null);
       // Refresh both pending and all
-      _ref.refresh(pendingLeavesProvider.future);
-      return _ref.refresh(allLeavesProvider.future);
+      _ref.invalidate(pendingLeavesProvider);
+      _ref.invalidate(allLeavesProvider);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -99,8 +99,8 @@ class LeaveController extends StateNotifier<AsyncValue<void>> {
 
       await _dao.updateStatus(leaveId, 'rejected', adminId: admin.id);
       state = const AsyncValue.data(null);
-      _ref.refresh(pendingLeavesProvider.future);
-      return _ref.refresh(allLeavesProvider.future);
+      _ref.invalidate(pendingLeavesProvider);
+      _ref.invalidate(allLeavesProvider);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -111,9 +111,9 @@ class LeaveController extends StateNotifier<AsyncValue<void>> {
     try {
       await _dao.deleteLeave(leaveId);
       state = const AsyncValue.data(null);
-      _ref.refresh(pendingLeavesProvider.future);
-      _ref.refresh(allLeavesProvider.future);
-      return _ref.refresh(myLeavesProvider.future);
+      _ref.invalidate(pendingLeavesProvider);
+      _ref.invalidate(allLeavesProvider);
+      _ref.invalidate(myLeavesProvider);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
