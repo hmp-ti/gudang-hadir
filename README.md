@@ -101,8 +101,16 @@ Aplikasi ini dibangun menggunakan *stack* teknologi modern:
 
 ## 🔐 Akun Demo
 
-Karena menggunakan backend Appwrite, Anda perlu **Register** akun baru melalui aplikasi atau membuat User di Appwrite Console.
-Role default saat register adalah `employee`. Untuk mengubah menjadi `admin` atau `owner`, edit dokumen user di collection `users` dan ubah field `role`.
+### 🔑 Credential Login
+Berikut adalah akun demo yang bisa Anda gunakan (jika sudah didaftarkan):
+
+| Role | Email | Password |
+| :--- | :--- | :--- |
+| **Admin** | `admin@mail.com` | `12345678` |
+| **Owner** | `owner@mail.com` | `12345678` |
+| **Karyawan** | `karyawan1@mail.com` | `12345678` |
+
+> **Catatan**: Jika akun belum ada, silakan **Register** melalui aplikasi lalu ubah role di database sesuai tabel di atas.
 
 ---
 
