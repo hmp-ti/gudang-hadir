@@ -7,6 +7,7 @@ import '../../attendance/presentation/tabs/employee_home_tab.dart';
 import 'tabs/admin_recap_tab.dart';
 import 'tabs/items_tab.dart';
 import 'tabs/admin_dashboard_tab.dart';
+import '../../payroll/presentation/payroll_list_page.dart';
 
 class AdminMainPage extends ConsumerStatefulWidget {
   const AdminMainPage({super.key});
@@ -28,6 +29,7 @@ class _AdminMainPageState extends ConsumerState<AdminMainPage> {
       const ItemsTab(), // Gudang
       const AdminRecapTab(), // Rekap
       const UsersTab(), // Karyawan
+      const PayrollListPage(), // Penggajian
       const SettingsTab(), // Setting
       // const ProfileTab(), // Profile
     ];
@@ -48,6 +50,7 @@ class _AdminMainPageState extends ConsumerState<AdminMainPage> {
           BottomNavigationBarItem(icon: Icon(Icons.inventory), label: 'Gudang'),
           BottomNavigationBarItem(icon: Icon(Icons.description), label: 'Rekap'),
           BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Karyawan'),
+          BottomNavigationBarItem(icon: Icon(Icons.monetization_on), label: 'Gaji'),
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Setting'),
           // BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],

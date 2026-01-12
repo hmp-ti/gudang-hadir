@@ -101,6 +101,38 @@ Ini adalah panduan lengkap untuk mengatur Database dan Storage di Appwrite agar 
 
 ---
 
+### 7. 💵 Collection: Payroll Configs
+*Collection ID*: `payroll_configs`
+
+| Attribute Name | Type | Size | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `userId` | String | 36 | Yes | ID Karyawan (Relasi ke Users) |
+| `baseSalary` | Double | - | Yes | Gaji Pokok |
+| `transportAllowance` | Double | - | Yes | Tunjangan Transport (Harian) |
+| `mealAllowance` | Double | - | Yes | Uang Makan (Harian) |
+| `overtimeRate` | Double | - | Yes | Upah Lembur (Per Jam) |
+| `latePenalty` | Double | - | Yes | Denda Terlambat (Per Menit) |
+| `absentPenalty` | Double | - | Yes | Denda Tidak Masuk (Per Hari) |
+| `shiftStartTime` | String | 5 | Yes | Jam Masuk Kerja (Format HH:MM) |
+
+### 8. 🧾 Collection: Payrolls (Slip Gaji)
+*Collection ID*: `payrolls`
+
+| Attribute Name | Type | Size | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `userId` | String | 36 | Yes | ID Karyawan (Relasi ke Users) |
+| `periodStart` | String | 10 | Yes | Periode Awal (YYYY-MM-DD) |
+| `periodEnd` | String | 10 | Yes | Periode Akhir (YYYY-MM-DD) |
+| `baseSalary` | Double | - | Yes | Gaji Pokok (Snapshot) |
+| `totalAllowance` | Double | - | Yes | Total Tunjangan |
+| `totalOvertime` | Double | - | Yes | Total Lembur |
+| `totalDeduction` | Double | - | Yes | Total Potongan |
+| `netSalary` | Double | - | Yes | Gaji Bersih (Take Home Pay) |
+| `detail` | String | 5000 | Yes | JSON Detail Perhitungan |
+| `status` | String | 16 | Yes | `draft` atau `paid` |
+
+---
+
 ## 🗂️ Storage Buckets
 
 ### Bucket: `general_storage`

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
@@ -243,10 +244,128 @@ class ReportPdfGenerator {
           }).toList(),
         );
       }
+      if (title == 'Payslip') {
+        return _buildPayslipContent(data);
+      }
     } catch (e) {
       return pw.Text('Error rendering PDF content: $e');
     }
 
     return pw.Text('Unknown Report Type');
+  }
+
+  static pw.Widget _buildPayslipContent(Map<String, dynamic> data) {
+    final payrollJson = data['payroll'];
+    // Re-hydrate objects manually as we might be passing raw JSON or object.
+    // Assuming 'payroll' is the map from Payroll.toJson().
+    // It includes 'detail' map.
+
+    final userName = data['userName'] ?? 'Karyawan';
+    final period = '${payrollJson['periodStart']} - ${payrollJson['periodEnd']}';
+
+    final detail = payrollJson['detail'] is String ? {} : (payrollJson['detail'] as Map<String, dynamic>);
+    // Assuming backend service passed it correctly. BUT repo sanitized to string if JSON.
+    // If we are calling from UI using Payroll object, check if we passed object or JSON map.
+    // Let's assume we passed Map<String, dynamic> representing Payroll.
+
+    final breakdown = detail['breakdown'] ?? {};
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+      children: [
+        pw.Center(
+          child: pw.Text('SLIP GAJI', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 18)),
+        ),
+        pw.SizedBox(height: 10),
+        pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          children: [pw.Text('Nama: $userName'), pw.Text('Periode: $period')],
+        ),
+        pw.Divider(),
+        pw.SizedBox(height: 10),
+
+        _buildRow('Gaji Pokok', (payrollJson['baseSalary'] ?? 0)),
+        pw.SizedBox(height: 10),
+        pw.Text('Penerimaan:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+        _buildRow('  Tunjangan Transport', breakdown['transport'] ?? 0),
+        _buildRow('  Uang Makan', breakdown['meal'] ?? 0),
+        _buildRow('  Lembur', breakdown['totalOvertime'] ?? 0),
+        _buildRow(
+          'Total Penerimaan',
+          (payrollJson['totalAllowance'] ?? 0) + (payrollJson['totalOvertime'] ?? 0),
+          isBold: true,
+        ),
+
+        pw.SizedBox(height: 10),
+        pw.Text(
+          'Potongan:',
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.red),
+        ),
+        _buildRow('  Terlambat', breakdown['lateDeduction'] ?? 0),
+        _buildRow('  Absen', breakdown['absentDeduction'] ?? 0),
+        _buildRow('Total Potongan', payrollJson['totalDeduction'] ?? 0, isBold: true),
+
+        pw.Divider(),
+        _buildRow('GAJI BERSIH', payrollJson['netSalary'] ?? 0, isBold: true, fontSize: 16),
+        pw.SizedBox(height: 40),
+
+        // Signature Area
+        _buildSignatureSection(data),
+      ],
+    );
+  }
+
+  static pw.Widget _buildRow(String label, dynamic value, {bool isBold = false, double fontSize = 12}) {
+    double val = 0;
+    if (value is int) val = value.toDouble();
+    if (value is double) val = value;
+
+    return pw.Row(
+      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+      children: [
+        pw.Text(
+          label,
+          style: pw.TextStyle(fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal, fontSize: fontSize),
+        ),
+        pw.Text(
+          CurrencyFormatter.format(val),
+          style: pw.TextStyle(fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal, fontSize: fontSize),
+        ),
+      ],
+    );
+  }
+
+  static pw.Widget _buildSignatureSection(Map<String, dynamic> data) {
+    final signerName = data['signerName'] ?? 'Admin';
+    final signatureBytes = data['signatureBytes'] as Uint8List?;
+    final stampBytes = data['stampBytes'] as Uint8List?;
+
+    return pw.Row(
+      mainAxisAlignment: pw.MainAxisAlignment.end,
+      children: [
+        pw.Column(
+          children: [
+            pw.Text('Mengetahui,'),
+            pw.SizedBox(height: 10),
+            pw.Container(
+              width: 150,
+              height: 80,
+              child: pw.Stack(
+                alignment: pw.Alignment.center,
+                children: [
+                  if (stampBytes != null)
+                    pw.Opacity(opacity: 0.7, child: pw.Image(pw.MemoryImage(stampBytes), width: 80)),
+                  if (signatureBytes != null) pw.Image(pw.MemoryImage(signatureBytes), width: 100),
+                ],
+              ),
+            ),
+            pw.Text(
+              signerName,
+              style: pw.TextStyle(fontWeight: pw.FontWeight.bold, decoration: pw.TextDecoration.underline),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }
