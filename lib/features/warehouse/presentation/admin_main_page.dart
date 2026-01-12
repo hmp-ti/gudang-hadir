@@ -8,6 +8,7 @@ import 'tabs/admin_recap_tab.dart';
 import 'tabs/items_tab.dart';
 import 'tabs/admin_dashboard_tab.dart';
 import '../../payroll/presentation/payroll_list_page.dart';
+import '../../smart_assistant/presentation/smart_assistant_page.dart';
 
 class AdminMainPage extends ConsumerStatefulWidget {
   const AdminMainPage({super.key});
@@ -35,7 +36,26 @@ class _AdminMainPageState extends ConsumerState<AdminMainPage> {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: Text(isOwner ? 'Owner Gudang Hadir' : 'Admin Gudang Hadir')),
+      appBar: AppBar(
+        title: Text(isOwner ? 'Owner Gudang Hadir' : 'Admin Gudang Hadir'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: CircleAvatar(
+              backgroundColor: Colors.white,
+              radius: 18,
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                icon: const Icon(Icons.auto_awesome, color: Colors.deepPurple, size: 20),
+                tooltip: 'Smart AI Assistant',
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const SmartAssistantPage()));
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
       body: tabs[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
