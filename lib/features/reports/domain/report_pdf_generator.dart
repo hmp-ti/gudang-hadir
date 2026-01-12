@@ -6,15 +6,32 @@ import 'package:printing/printing.dart';
 import '../../warehouse/domain/item.dart';
 import '../../leave/domain/leave.dart';
 import '../../../core/utils/currency_formatter.dart';
+import '../../settings/data/settings_dao.dart';
+import '../../../core/services/appwrite_service.dart';
+import '../../../core/config/appwrite_config.dart';
 
 class ReportPdfGenerator {
   static Future<Uint8List> generate(String title, Map<String, dynamic> data) async {
     final pdf = pw.Document();
 
+    // Fetch Config for Header
+    pw.MemoryImage? headerImage;
+    try {
+      final dao = SettingsDao(AppwriteService.instance);
+      final config = await dao.getSignatureConfig();
+      if (config['headerFileId'] != null) {
+        final bytes = await AppwriteService.instance.storage.getFileDownload(
+          bucketId: AppwriteConfig.storageBucketId,
+          fileId: config['headerFileId']!,
+        );
+        headerImage = pw.MemoryImage(bytes);
+      }
+    } catch (_) {}
+
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        build: (context) => [_buildHeader(title), pw.SizedBox(height: 20), _buildContent(title, data)],
+        build: (context) => [_buildHeader(title, headerImage), pw.SizedBox(height: 20), _buildContent(title, data)],
       ),
     );
 
@@ -22,14 +39,27 @@ class ReportPdfGenerator {
     return await pdf.save();
   }
 
-  static pw.Widget _buildHeader(String title) {
+  static pw.Widget _buildHeader(String title, pw.MemoryImage? headerImage) {
     return pw.Header(
       level: 0,
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+      child: pw.Column(
         children: [
-          pw.Text(title, style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
-          pw.Text('Generated: ${DateFormat('dd MMM yyyy HH:mm').format(DateTime.now())}'),
+          if (headerImage != null)
+            pw.Image(headerImage, width: 500)
+          else
+            pw.Text(title, style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+          if (headerImage != null) pw.SizedBox(height: 10),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              if (headerImage != null)
+                pw.Text(
+                  title,
+                  style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                ), // Show title small if header exists
+              pw.Text('Generated: ${DateFormat('dd MMM yyyy HH:mm').format(DateTime.now())}'),
+            ],
+          ),
         ],
       ),
     );

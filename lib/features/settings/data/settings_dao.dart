@@ -53,16 +53,23 @@ class SettingsDao {
     }
   }
 
-  Future<void> setSignatureConfig(String signerName, String? signatureFileId, String? stampFileId) async {
+  Future<void> setSignatureConfig(
+    String signerName,
+    String? signatureFileId,
+    String? stampFileId, {
+    String? headerFileId,
+  }) async {
     await setSetting('app_signer_name', signerName);
     if (signatureFileId != null) await setSetting('app_signature_file_id', signatureFileId);
     if (stampFileId != null) await setSetting('app_stamp_file_id', stampFileId);
+    if (headerFileId != null) await setSetting('app_header_file_id', headerFileId);
   }
 
   Future<Map<String, String?>> getSignatureConfig() async {
     final name = await getSetting('app_signer_name');
     final sig = await getSetting('app_signature_file_id');
     final stamp = await getSetting('app_stamp_file_id');
-    return {'signerName': name, 'signatureFileId': sig, 'stampFileId': stamp};
+    final header = await getSetting('app_header_file_id');
+    return {'signerName': name, 'signatureFileId': sig, 'stampFileId': stamp, 'headerFileId': header};
   }
 }

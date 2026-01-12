@@ -18,8 +18,10 @@ class _SignatureSettingsPageState extends ConsumerState<SignatureSettingsPage> {
   final _nameCtrl = TextEditingController();
   String? _signatureId;
   String? _stampId;
+  String? _headerId;
   File? _newSignature;
   File? _newStamp;
+  File? _newHeader;
   bool _isLoading = false;
 
   late SettingsDao _dao;
@@ -38,19 +40,23 @@ class _SignatureSettingsPageState extends ConsumerState<SignatureSettingsPage> {
     setState(() {
       _signatureId = config['signatureFileId'];
       _stampId = config['stampFileId'];
+      _headerId = config['headerFileId'];
       _isLoading = false;
     });
   }
 
-  Future<void> _pickImage(bool isSignature) async {
+  Future<void> _pickImage(int type) async {
+    // 1: Signature, 2: Stamp, 3: Header
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery);
     if (picked != null) {
       setState(() {
-        if (isSignature) {
+        if (type == 1) {
           _newSignature = File(picked.path);
-        } else {
+        } else if (type == 2) {
           _newStamp = File(picked.path);
+        } else if (type == 3) {
+          _newHeader = File(picked.path);
         }
       });
     }
@@ -61,6 +67,7 @@ class _SignatureSettingsPageState extends ConsumerState<SignatureSettingsPage> {
     try {
       String? sigId = _signatureId;
       String? stpId = _stampId;
+      String? hdrId = _headerId;
 
       if (_newSignature != null) {
         final file = await AppwriteService.instance.storage.createFile(
@@ -80,7 +87,16 @@ class _SignatureSettingsPageState extends ConsumerState<SignatureSettingsPage> {
         stpId = file.$id;
       }
 
-      await _dao.setSignatureConfig(_nameCtrl.text, sigId, stpId);
+      if (_newHeader != null) {
+        final file = await AppwriteService.instance.storage.createFile(
+          bucketId: AppwriteConfig.storageBucketId,
+          fileId: 'unique()',
+          file: InputFile.fromPath(path: _newHeader!.path, filename: 'header.png'),
+        );
+        hdrId = file.$id;
+      }
+
+      await _dao.setSignatureConfig(_nameCtrl.text, sigId, stpId, headerFileId: hdrId);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Disimpan!')));
         Navigator.pop(context);
@@ -106,6 +122,16 @@ class _SignatureSettingsPageState extends ConsumerState<SignatureSettingsPage> {
                   decoration: const InputDecoration(labelText: 'Nama Penanda Tangan'),
                 ),
                 const SizedBox(height: 20),
+                const Text('Kop Surat / Header Laporan', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                if (_newHeader != null)
+                  Image.file(_newHeader!, height: 100)
+                else if (_headerId != null)
+                  const Text('Kop Surat Tersimpan')
+                else
+                  const Text('Belum ada kop surat'),
+                ElevatedButton(onPressed: () => _pickImage(3), child: const Text('Upload Kop Surat')),
+                const SizedBox(height: 20),
                 const Text('Tanda Tangan', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 if (_newSignature != null)
@@ -114,7 +140,7 @@ class _SignatureSettingsPageState extends ConsumerState<SignatureSettingsPage> {
                   const Text('File Tersimpan (Preview from storage TODO)')
                 else
                   const Text('Belum ada tanda tangan'),
-                ElevatedButton(onPressed: () => _pickImage(true), child: const Text('Upload Tanda Tangan')),
+                ElevatedButton(onPressed: () => _pickImage(1), child: const Text('Upload Tanda Tangan')),
                 const SizedBox(height: 20),
                 const Text('Stempel', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
@@ -124,7 +150,7 @@ class _SignatureSettingsPageState extends ConsumerState<SignatureSettingsPage> {
                   const Text('File Tersimpan')
                 else
                   const Text('Belum ada stempel'),
-                ElevatedButton(onPressed: () => _pickImage(false), child: const Text('Upload Stempel')),
+                ElevatedButton(onPressed: () => _pickImage(2), child: const Text('Upload Stempel')),
                 const SizedBox(height: 32),
                 ElevatedButton(
                   onPressed: _save,

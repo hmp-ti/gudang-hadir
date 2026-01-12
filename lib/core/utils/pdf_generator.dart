@@ -20,6 +20,7 @@ class PdfGenerator {
 
     pw.MemoryImage? signatureImage;
     pw.MemoryImage? stampImage;
+    pw.MemoryImage? headerImage;
 
     try {
       if (config['signatureFileId'] != null) {
@@ -35,6 +36,13 @@ class PdfGenerator {
           fileId: config['stampFileId']!,
         );
         stampImage = pw.MemoryImage(bytes);
+      }
+      if (config['headerFileId'] != null) {
+        final bytes = await AppwriteService.instance.storage.getFileDownload(
+          bucketId: AppwriteConfig.storageBucketId,
+          fileId: config['headerFileId']!,
+        );
+        headerImage = pw.MemoryImage(bytes);
       }
     } catch (_) {
       // Ignore if image fetch fails
@@ -57,11 +65,15 @@ class PdfGenerator {
                 child: pw.Center(
                   child: pw.Column(
                     children: [
-                      pw.Text('SURAT IZIN CUTI', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 24)),
-                      pw.Text(
-                        'GUDANG BITORA PROTOCOL',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 20),
-                      ),
+                      if (headerImage != null)
+                        pw.Image(headerImage, width: 500)
+                      else ...[
+                        pw.Text('SURAT IZIN CUTI', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 24)),
+                        pw.Text(
+                          'GUDANG BITORA PROTOCOL',
+                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 20),
+                        ),
+                      ],
                     ],
                   ),
                 ),
