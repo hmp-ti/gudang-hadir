@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../domain/payroll.dart';
-import '../data/payroll_repository.dart';
 import '../domain/payroll_service.dart';
 import '../../reports/domain/report_pdf_generator.dart';
 import '../../../core/services/appwrite_service.dart';

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart'; // Import dotenv
 import 'app/router.dart';
 import 'app/theme.dart';
 
@@ -11,8 +12,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id_ID', null);
 
-  // Replace with your actual Gemini API Key
-  Gemini.init(apiKey: 'AIzaSyAe4CkxzNke3IduNSAWVUvUZ4gqm258BiI');
+  await dotenv.load(fileName: ".env"); // Load env
+
+  // Replace with your actual Gemini API Key from environment variable
+  Gemini.init(apiKey: dotenv.env['GEMINI_API_KEY'] ?? '');
 
   runApp(const ProviderScope(child: MyApp()));
 }

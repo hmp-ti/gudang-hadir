@@ -1,10 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../attendance/data/attendance_dao.dart';
-import '../../attendance/domain/attendance.dart';
 import '../data/payroll_repository.dart';
 import 'payroll.dart';
-import 'payroll_config.dart';
 import '../../../core/services/appwrite_service.dart';
 
 final payrollServiceProvider = Provider(

@@ -44,6 +44,7 @@ class _PayrollGenerationPageState extends ConsumerState<PayrollGenerationPage> {
       final payroll = await service.generatePayrollPreview(userId: user.id, month: _selectedMonth, year: _selectedYear);
       setState(() => _previews[user.id] = payroll);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error ${user.name}: $e')));
     } finally {
       setState(() => _loadingPreviews[user.id] = false);

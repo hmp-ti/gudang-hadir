@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/utils/currency_formatter.dart';
 import '../domain/payroll_config.dart';
 import '../domain/payroll_service.dart';
 

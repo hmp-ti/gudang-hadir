@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:appwrite/appwrite.dart';
+import 'package:flutter/material.dart';
 import '../../../core/config/appwrite_config.dart';
 import '../../../core/services/appwrite_service.dart';
 import '../domain/payroll.dart';
@@ -77,7 +78,7 @@ class PayrollRepository {
       );
       return response.rows.map((e) => Payroll.fromJson(e.data)).toList();
     } catch (e) {
-      print('Error fetching payrolls: $e');
+      debugPrint('Error fetching payrolls: $e');
       return [];
     }
   }

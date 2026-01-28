@@ -62,8 +62,8 @@ class SmartAssistantService {
 
     // Group by User
     final Map<String, int> lateCounts = {};
-    final Map<String, int> absentCounts =
-        {}; // We assume we can calculate absent from schedule, but here we count presents
+    //final Map<String, int> absentCounts = {};
+    // We assume we can calculate absent from schedule, but here we count presents
 
     // Simple analysis: Late count (if checkIn > 08:00? We don't have schedule here easily.
     // We'll rely on what data we have. Attendance object has checkInTime.)
